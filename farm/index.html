@@ -1,0 +1,1979 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}html,body{margin:0}</style></head><body><!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Walk the Rows</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:ROND,wght@0..100,100..900&family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..500&display=swap"><style id="fcnav-css">
+.word,.mark,.wm,#brand>:first-child{visibility:hidden}
+.fcnav{position:fixed;z-index:60;top:calc(env(safe-area-inset-top,0px) + 12px);left:max(16px,env(safe-area-inset-left,0px));
+ display:flex;align-items:center;gap:2px;max-width:calc(100vw - 32px);overflow-x:auto;scrollbar-width:none;
+ background:rgba(18,23,26,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(165,174,180,.2);padding:3px}
+.fcnav::-webkit-scrollbar{display:none}
+.fcnav a{flex:0 0 auto;color:#a5aeb4;text-decoration:none;font:400 15px/1 "Literata",Georgia,serif;padding:8px 12px;transition:color .2s,background .2s}
+.fcnav a:hover{color:#fbfbf4}
+.fcnav a[aria-current="page"]{color:#14191d;background:#fbfbf4}
+.fcnav a.home{font:700 17px/1 "Doto",ui-monospace,monospace;font-variation-settings:"ROND" 100;color:#fbfbf4;padding-right:14px}
+.fcnav a.home[aria-current="page"]{color:#14191d}
+.fcnav a:focus-visible{outline:2px solid #a5aeb4;outline-offset:-2px}
+@media (max-width:700px){.fcnav{top:calc(env(safe-area-inset-top,0px) + 8px);left:8px;max-width:calc(100vw - 16px)}.fcnav a{font-size:14px;padding:8px 9px}}
+</style><style>body{--fc-top:60px}.svtop{padding-top:calc(env(safe-area-inset-top,0px) + 64px)!important}#svflag{top:calc(env(safe-area-inset-top,0px) + 64px)!important}</style><nav class="fcnav" aria-label="Pages"><a class="home" href="../index.html">FieldCount</a><a href="../season/index.html">Season</a><a href="../lab/index.html">Bush lab</a><a href="../farm/index.html" aria-current="page">Farm</a><a href="../skeleton/index.html">Skeleton</a></nav>
+<meta name="description" content="A blueberry farm map you can drop into: walk along real photos of the rows and see where weeds crowd the bushes. The farm figures are illustrative.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:ROND,wght@0..100,100..900&family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d0a; --ink:#ece9e1; --mute:#a3a197; --rule:rgba(236,233,225,.2);
+  --glass:rgba(11,13,10,.74); --ex:#d9c48c; --meas:#f3ecdb;
+  --unripe:#8fa83a; --mid:#c24a72; --ripe:#3f5bc4;
+  --serif:"Literata",Georgia,serif; --dot:"Doto","Literata",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);overflow:hidden;overscroll-behavior:none}
+body{font-family:var(--serif);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#map{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;display:block;touch-action:none;cursor:grab}
+#map.drag{cursor:grabbing}
+/* numbers: dot-matrix Doto, rounded dots */
+.num,.big,.ct,.split span,#load b{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:800;font-variant-numeric:tabular-nums}
+
+/* top bar */
+.top{position:fixed;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+  padding:16px 20px;pointer-events:none;z-index:5}
+.wm{font-size:22px;letter-spacing:-.01em;line-height:1}
+.wm small{display:block;font-size:13px;font-style:italic;color:var(--mute);margin-top:5px;letter-spacing:0}
+
+/* intro */
+#intro{display:none;position:fixed;left:0;right:0;bottom:12vh;padding:0 20px;z-index:6;max-width:900px}
+#intro .k{font-size:17px;font-style:italic;color:var(--mute)}
+#intro h1{text-shadow:0 2px 30px rgba(0,0,0,.35);font-weight:400;font-size:clamp(46px,10vw,128px);line-height:.95;letter-spacing:-.03em;margin:10px 0 26px}
+#intro h1 em{font-style:normal;font-weight:300;color:var(--mute)}
+.go{font-size:17px;padding:11px 22px 12px;border:1px solid var(--ink);display:inline-flex;gap:14px;align-items:center;transition:background .25s,color .25s}
+.go:hover,.go:focus-visible{background:var(--ink);color:var(--bg);outline:none}
+.go span{display:inline-block;width:1px;height:14px;background:currentColor;transform-origin:top;animation:drop 1.6s ease-in-out infinite}
+@keyframes drop{0%{transform:scaleY(0)}50%{transform:scaleY(1)}100%{transform:scaleY(0);transform-origin:bottom}}
+#load{font-size:13px;color:var(--mute);margin-top:14px}
+
+/* place labels during the descent */
+#place{position:fixed;left:50%;top:50%;transform:translate(-50%,calc(-50% + 64px));text-align:center;pointer-events:none;z-index:4;opacity:0;width:min(92vw,640px);text-shadow:0 1px 18px rgba(0,0,0,.5)}
+#place .n{font-size:clamp(28px,4.8vw,50px);letter-spacing:-.02em;line-height:1.05}
+#place .s{font-size:16px;font-style:italic;color:var(--ink);opacity:.8;margin-top:8px}
+
+/* block panel */
+#panel{position:fixed;left:20px;bottom:44px;width:min(370px,calc(100vw - 32px));z-index:5;background:var(--glass);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--rule);padding:14px 18px 14px;visibility:hidden}
+.tag{display:inline-block;font-size:12.5px;font-style:italic;padding:1px 7px 2px;border:1px solid currentColor;line-height:1.4;white-space:nowrap}
+.tag.ex{color:var(--ex)} .tag.pre{color:var(--meas)}
+.big{font-size:clamp(38px,4.3vw,54px);line-height:1;margin:12px 0 8px}
+.sub{font-size:15px;color:var(--mute)}
+.sub b{color:var(--ink);font-weight:400;font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:700;font-size:16px}
+.bar{display:flex;height:5px;margin:12px 0 9px;background:rgba(255,255,255,.08)}
+.bar i{display:block;height:100%;transition:width .3s}
+.bar i:nth-child(1){background:var(--unripe)} .bar i:nth-child(2){background:var(--mid)} .bar i:nth-child(3){background:var(--ripe)}
+.leg{display:flex;flex-wrap:wrap;gap:3px 14px;font-size:13.5px;color:var(--mute)}
+.leg span{display:inline-flex;align-items:center;gap:6px}
+.leg em{font-style:italic}
+.leg span::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+.meas{display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:center;width:100%;text-align:left;margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)}
+.meas img{width:64px;height:48px;object-fit:cover;display:block}
+.meas .l1{font-size:13.5px;font-style:italic;color:var(--meas)}
+.meas .l2{font-size:16px;line-height:1.3;margin-top:2px}
+.meas .l2 b{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:700;font-size:20px}
+.meas:hover .l2,.meas:focus-visible .l2{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.meas:focus-visible{outline:none}
+
+/* controls */
+.ctrl{position:fixed;right:20px;bottom:44px;display:flex;flex-direction:column;gap:0;z-index:5;visibility:hidden}
+.ctrl button{width:40px;height:40px;border:1px solid var(--rule);border-bottom:0;background:var(--glass);font-size:18px;line-height:1}
+.ctrl button:last-child{border-bottom:1px solid var(--rule);font-size:12px;font-style:italic;height:auto;padding:8px 0}
+.ctrl button:hover,.ctrl button:focus-visible{background:var(--ink);color:var(--bg);outline:none}
+
+/* bush card */
+#card{position:fixed;z-index:8;width:300px;background:rgba(11,13,10,.93);border:1px solid var(--rule);pointer-events:none;
+  opacity:0;transform:translateY(6px);transition:opacity .18s,transform .18s}
+#card.on{opacity:1;transform:none}
+#card.pinned{pointer-events:auto}
+#card figure{position:relative;aspect-ratio:4/3;overflow:hidden;background:#1a1d17}
+#card img{width:100%;height:100%;object-fit:cover;display:block}
+#card figcaption{position:absolute;left:0;right:0;bottom:0;padding:16px 10px 6px;font-size:12px;font-style:italic;color:#e9e6dc;
+  background:linear-gradient(transparent,rgba(0,0,0,.65))}
+.cb{padding:12px 14px 14px}
+.ch{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 8px;font-size:14px;color:var(--mute)}
+.ct{font-size:50px;line-height:1;margin:10px 0 4px}
+.cl{font-size:14px;color:var(--mute);line-height:1.35}
+.split{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.split div{border-top:2px solid var(--c);padding-top:5px;line-height:1.1}
+.split span{font-size:22px}
+.split small{display:block;font-size:12.5px;color:var(--mute);margin-top:2px}
+.cr{font-size:13.5px;color:var(--mute);margin-top:12px;padding-top:9px;border-top:1px solid var(--rule);line-height:1.45}
+.cr b{color:var(--ink);font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:700;font-size:15px}
+.thumbs{display:flex;gap:4px;margin-top:10px}
+.thumbs button{flex:1;aspect-ratio:4/3;overflow:hidden;opacity:.5;border:1px solid transparent;padding:0}
+.thumbs button.on{opacity:1;border-color:var(--meas)}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.cx{display:none;position:absolute;top:0;right:0;z-index:2;font-size:13px;font-style:italic;color:var(--ink);background:rgba(11,13,10,.8);padding:5px 10px 6px}
+#card.pinned .cx{display:inline-block}
+
+.attr{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:9px 20px 10px;font-size:11.5px;color:#8d8b82;
+  background:linear-gradient(transparent,rgba(11,13,10,.85) 45%);pointer-events:none;line-height:1.45}
+
+@media (max-width:640px){
+  #card{background:rgba(11,13,10,.97)}
+  .cx{left:0;right:auto}
+  .top{padding:12px 16px}
+  .wm{font-size:19px}
+  #intro{padding:0 16px;bottom:16vh}
+  #panel{left:16px;bottom:56px;padding:12px 14px 10px}
+  .big{font-size:36px;margin:8px 0 4px}
+  .meas{margin-top:10px;padding-top:9px;grid-template-columns:52px 1fr}
+  .meas img{width:52px;height:39px}
+  .meas .l2{font-size:14.5px}
+  .ctrl{right:16px;bottom:auto;top:96px}
+  .ctrl button{width:36px;height:36px}
+  #card{left:16px!important;right:16px;bottom:56px;top:auto!important;width:auto;display:grid;grid-template-columns:38% 1fr}
+  #card figure{aspect-ratio:auto;min-height:100%}
+  .cb{padding:10px 12px 12px}
+  .ct{font-size:38px;margin-top:6px}
+  .split span{font-size:17px}
+  .attr{padding:8px 16px;font-size:10.5px}
+  body.carded #panel{visibility:hidden!important}
+  .vleg{grid-template-columns:1fr 1fr 1fr;font-size:11.5px;gap:2px 8px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+/* views and variety legend */
+.views{display:flex;gap:0;margin:12px 0 2px}
+.views button{flex:1;padding:6px 0 7px;border:1px solid var(--rule);font-size:14px;color:var(--mute)}
+.views button+button{border-left:0}
+.views button.on{background:var(--ink);color:var(--bg)}
+.vleg{display:none;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:13px;color:var(--mute);margin-top:10px}
+.vleg span{display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vleg span::before{content:"";flex:none;width:9px;height:9px;border-radius:50%;background:var(--c)}
+.vleg span.line::before{border-radius:0;height:3px}
+body.vmode .vleg{display:grid} body.vmode .rleg{display:none}
+.cv{font-size:15px;color:var(--ink);margin-top:3px}
+.cv i{font-style:italic;color:var(--mute)}
+@media (max-width:640px){.vleg{grid-template-columns:1fr 1fr 1fr;font-size:11.5px;gap:2px 8px}.views{margin-top:8px}.views button{padding:4px 0 5px}}
+
+/* panel */
+.hero{display:block;width:100%;text-align:left}
+.hero .hl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:15px;color:var(--meas)}
+.hero .hrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hero .big{display:block;margin:8px 0 2px;font-size:clamp(48px,5vw,64px)}
+.hero img{width:84px;height:63px;object-fit:cover;display:block;border:1px solid var(--rule)}
+.hero .hs,.hero .hs2{display:block}
+.hero .hs2{margin-top:3px;font-size:14px}
+.hero:hover .hs,.hero:focus-visible .hs{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.hero:focus-visible{outline:1px solid var(--meas);outline-offset:4px}
+.ex{margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)}
+.exh{font-size:22px;color:var(--ink);line-height:1.15}
+.exh span{display:block;font-size:13.5px;color:var(--mute);margin-top:2px}
+.exn{margin:8px 0 3px;color:var(--ex);line-height:1.15}
+.exn .num{font-size:24px}
+.exn .u{font-size:15px;margin-left:5px;color:var(--ink)}
+.bar i:nth-child(1){background:var(--ripe)!important} .bar i:nth-child(3){background:var(--unripe)!important}
+@media (max-width:640px){
+  .hero .big{font-size:40px;margin:4px 0 0}
+  .hero img{width:64px;height:48px}
+  .hero .hl,.hero .hs2{font-size:13px}
+  .ex{margin-top:9px;padding-top:8px}
+  .exh{font-size:19px} .exh span{display:inline;font-size:12px;margin-left:4px}
+  .exn .num{font-size:19px} .exn .u{font-size:13px}
+  .exn{margin:5px 0 2px}
+}
+
+/* photos line in the panel */
+.pv{padding-bottom:12px;margin-bottom:2px}
+.pvl{font-size:14.5px;line-height:1.4;color:var(--ink)}
+.pvl b,.fh b{font-weight:800;font-size:16px}
+.fh{font-size:15px;margin-top:10px;color:var(--flag)}
+.fl{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:4px}
+.fl button{font-size:14px;padding:3px 0;color:var(--ink);text-decoration:underline;text-decoration-color:rgba(255,143,58,.55);text-underline-offset:4px;text-decoration-thickness:1px}
+.fl button b{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:800}
+.fl button:hover,.fl button:focus-visible{color:var(--flag);outline:none}
+.fn{font-size:12.5px;color:var(--mute);margin-top:5px;line-height:1.35}
+.pv+.ex{margin-top:0}
+
+/* yield */
+.yld{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.yld div{border-top:1px solid var(--rule);padding-top:6px;line-height:1.1}
+.yld b{font-size:24px;font-weight:800;color:var(--ex)}
+.yld span{font-size:14px;color:var(--ink)}
+.yld small{display:block;font-size:13px;color:var(--mute);margin-top:3px}
+.yn{font-size:12.5px;color:var(--mute);margin-top:6px}
+
+/* today on the farm */
+#today{position:fixed;right:20px;top:16px;z-index:6;width:min(340px,calc(100vw - 32px));background:var(--glass);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--rule);visibility:hidden}
+.tdh{display:flex;width:100%;justify-content:space-between;align-items:center;padding:11px 16px 12px;font-size:17px;text-align:left}
+.tdh i{display:block;width:9px;height:9px;border-right:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);transform:rotate(-135deg);margin:4px 2px 0 0;transition:transform .25s}
+.tdh[aria-expanded="false"] i{transform:rotate(45deg);margin-top:-4px}
+.tdh:hover,.tdh:focus-visible{outline:none;color:var(--note)}
+.tdb{padding:0 16px 8px;max-height:calc(100vh - 140px);overflow:auto}
+.tdb[hidden]{display:none}
+.it{padding:9px 0 10px;border-top:1px solid var(--rule)}
+.ih{font-size:15px;line-height:1.35}
+.ih button,.il button,.lk{text-decoration:underline;text-decoration-color:rgba(242,198,109,.6);text-underline-offset:4px;text-decoration-thickness:1px;padding:1px 0}
+.ih button:hover,.il button:hover,.lk:hover,.ih button:focus-visible,.il button:focus-visible,.lk:focus-visible{color:var(--note);outline:none}
+.ih b,.il b,#tip b{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:800}
+.is{font-size:13px;color:var(--mute);line-height:1.35;margin-top:3px}
+.il{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:4px;font-size:14px}
+.tg2{display:inline-block;font-size:12px;line-height:1.3;padding:0 6px 1px;border:1px solid var(--note);color:var(--note);margin-left:6px;vertical-align:1px;white-space:nowrap}
+.tg2.kp{border-color:var(--flag);color:var(--flag)}
+.tg2.kx{border-color:var(--ex);color:var(--ex)}
+#tip{position:fixed;left:0;top:0;z-index:12;width:max-content;max-width:280px;background:rgba(11,13,10,.94);border:1px solid var(--rule);
+  padding:9px 12px 10px;font-size:14.5px;line-height:1.35;visibility:hidden}
+#tip.on{visibility:visible}
+#tip small{display:block;font-size:12.5px;color:var(--mute);margin-top:3px}
+#tip .lk{margin-top:7px;margin-right:16px;font-size:14px;display:inline-block}
+#tip .tx{margin-top:7px;font-size:13px;color:var(--mute);display:inline-block}
+
+/* the walker */
+:root{--flag:#ff8f3a;--walk:#f3ecdb;--note:#f2c66d}
+.fig{position:relative;display:block;width:14px;height:30px;pointer-events:none}
+.fig::before{content:"";position:absolute;left:3px;top:0;width:8px;height:8px;border-radius:50%;background:var(--walk)}
+.fig::after{content:"";position:absolute;left:1px;top:10px;width:12px;height:20px;border-radius:6px 6px 2px 2px;background:var(--walk)}
+.ctrl .dock{height:62px;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none}
+.ctrl .dock:hover,.ctrl .dock:focus-visible{background:var(--glass);outline:1px solid var(--walk);outline-offset:-1px}
+.ctrl .dock:hover .fig,.ctrl .dock:focus-visible .fig{transform:translateY(-3px)}
+.dock .fig{transition:transform .2s}
+.dock.out .fig{visibility:hidden}
+#dragfig{position:fixed;left:0;top:0;z-index:20;visibility:hidden;transform-origin:50% 100%;
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.6))}
+#dragfig.on{visibility:visible}
+#tgt{position:fixed;z-index:19;left:0;top:0;font-size:14px;padding:3px 8px 4px;background:rgba(11,13,10,.86);color:var(--walk);
+  pointer-events:none;visibility:hidden;white-space:nowrap}
+#tgt.on{visibility:visible}
+#tgt small{display:block;font-size:12.5px;color:var(--mute);margin-top:2px}
+#tgt.note{white-space:normal;width:max-content;max-width:280px;color:var(--ink);font-size:14.5px;line-height:1.35;padding:8px 11px 9px;border:1px solid var(--rule);background:rgba(11,13,10,.94)}
+#tgt b{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:800}
+
+/* row view */
+#sv{position:fixed;inset:0;z-index:30;background:#060705;overflow:hidden;visibility:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.ph{position:absolute;inset:0;overflow:hidden;cursor:ew-resize}
+.ph img{position:absolute;left:-3%;top:-3%;width:106%;height:106%;object-fit:cover;opacity:0;will-change:transform,opacity}
+#svBg{display:none}
+@media (max-aspect-ratio:1/1){
+  /* tall screens: the whole photo, over a blurred copy of itself */
+  #svBg{display:block;opacity:1!important;filter:blur(22px) brightness(.45) saturate(.8);transform:scale(1.15)}
+  #svA,#svB{object-fit:contain;left:0;top:0;width:100%;height:100%}
+}
+.ph::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(rgba(6,7,5,.55),transparent 22%,transparent 70%,rgba(6,7,5,.72))}
+.svtop{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px;z-index:3}
+.svid{font-size:15px;line-height:1.3;text-shadow:0 1px 10px rgba(0,0,0,.6)}
+.svid b{font-size:28px;font-weight:900;margin-left:3px;vertical-align:-2px}
+.svv{color:#d6d3c9;font-size:14px}
+.svx{white-space:nowrap;font-size:15px;padding:8px 14px 9px;border:1px solid rgba(236,233,225,.6);background:rgba(11,13,10,.55)}
+.svx:hover,.svx:focus-visible{background:var(--ink);color:var(--bg);outline:none}
+#svflag{position:absolute;left:50%;top:18px;transform:translateX(-50%);z-index:3;background:rgba(11,13,10,.82);border-left:3px solid var(--flag);
+  padding:8px 14px 9px;font-size:15px;color:var(--ink);max-width:min(480px,calc(100vw - 32px));line-height:1.3}
+#svflag[hidden],.svw[hidden]{display:none}
+.svw{color:#ffb27a}
+#svticks b{position:absolute;top:10px;height:6px;background:var(--flag);opacity:.9}
+#svflag small{display:block;font-size:12.5px;color:var(--mute);margin-top:2px}
+.svnav{position:absolute;top:50%;width:56px;height:96px;margin-top:-48px;z-index:3;display:flex;align-items:center;justify-content:center}
+.svnav i{display:block;width:18px;height:18px;border-top:2px solid var(--ink);border-right:2px solid var(--ink);filter:drop-shadow(0 1px 3px rgba(0,0,0,.8))}
+.svnav.prev{left:8px} .svnav.prev i{transform:rotate(-135deg);margin-left:8px}
+.svnav.next{right:8px} .svnav.next i{transform:rotate(45deg);margin-right:8px}
+.svnav{background:rgba(11,13,10,.28)}
+.svnav:hover,.svnav:focus-visible{background:rgba(11,13,10,.55);outline:none}
+.svnav[disabled]{opacity:.25;cursor:default}
+.svbot{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;gap:18px;padding:0 20px 18px;z-index:3}
+#mini{width:168px;height:168px;flex:none;border:1px solid rgba(236,233,225,.45);cursor:pointer;background:#141611;display:block}
+.svmeta{flex:1;min-width:0;padding-bottom:2px;text-shadow:0 1px 8px rgba(0,0,0,.7)}
+.svpos{font-size:15px}
+.svpos b{font-size:24px;font-weight:900;margin:0 3px;vertical-align:-1px}
+.track{position:relative;height:26px;margin-top:6px;cursor:pointer;touch-action:none}
+.track .tl{position:absolute;left:0;right:0;top:12px;height:2px;background:rgba(236,233,225,.32)}
+#svticks i{position:absolute;top:8px;width:2px;height:10px;margin-left:-1px;background:rgba(236,233,225,.45)}
+#svticks i.f{background:var(--flag);width:3px;top:4px;height:18px;margin-left:-1.5px}
+#svknob{position:absolute;top:5px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:var(--walk);box-shadow:0 0 0 3px rgba(11,13,10,.55)}
+.svhint{font-size:12.5px;color:#c9c6bc;margin-top:2px}
+@media (max-width:640px){
+  .svtop{padding:12px 14px}
+  .svid b{font-size:19px}
+  .svx{font-size:14px;padding:7px 11px 8px}
+  #svflag{top:auto;bottom:150px;left:14px;right:14px;transform:none;max-width:none;font-size:14px}
+  .svnav{width:44px;height:80px;margin-top:-40px}
+  .svnav.prev{left:2px} .svnav.next{right:2px}
+  .svbot{padding:0 14px 14px;gap:12px}
+  #mini{width:108px;height:108px}
+  .svpos{font-size:14px} .svpos b{font-size:17px}
+  .svhint{display:none}
+  .pvl{font-size:13px} .fh{font-size:14px;margin-top:6px} .fn{display:none} .pv{padding-bottom:8px}
+  .fl button{font-size:13px}
+  .ctrl .dock{height:52px}
+  #today{left:16px;right:16px;width:auto;top:62px}
+  .tdh{padding:8px 12px 9px;font-size:15px}
+  .tdb{padding:0 12px 6px;max-height:44vh}
+  .ctrl{top:112px}
+  body.tdopen .ctrl,body.tdopen #panel{visibility:hidden!important}
+  #today{background:rgba(11,13,10,.9)}
+  .yld b{font-size:19px} .yld{margin-top:7px;gap:8px} .yld small{font-size:12px} .yn{display:none}
+  .attr .lg{display:none}
+  .rleg em{display:none}
+  #tip{max-width:calc(100vw - 32px)}
+}
+
+/* view switcher */
+#nav{position:fixed;left:236px;top:15px;z-index:9;display:flex;gap:2px;visibility:hidden}
+#nav button{font-size:16px;padding:6px 10px 8px;color:var(--mute);border-bottom:2px solid transparent;text-shadow:0 1px 10px rgba(0,0,0,.6)}
+#nav button:hover,#nav button:focus-visible{color:var(--ink);outline:none}
+#nav button.on{color:var(--ink);border-bottom-color:var(--ink)}
+
+#wip{position:fixed;left:246px;top:54px;z-index:9;font-size:12.5px;color:var(--ex);text-shadow:0 1px 8px rgba(0,0,0,.8);visibility:hidden;max-width:calc(100vw - 640px)}
+/* sheets: one per view, the map stays behind as the shared base */
+.sheet{position:fixed;left:20px;top:80px;bottom:44px;width:min(660px,calc(100vw - 380px));z-index:7;background:rgba(11,13,10,.94);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--rule);overflow:auto;padding:16px 22px 26px;visibility:hidden;
+  scrollbar-width:thin;scrollbar-color:rgba(236,233,225,.25) transparent}
+.sheet.wide{width:auto;right:20px;max-width:1180px}
+.sheet h2{font-weight:400;font-size:24px;line-height:1.15}
+.pln{font-size:13.5px;color:var(--mute);line-height:1.4;margin-top:7px;max-width:600px}
+.pln2{font-size:12.5px;color:var(--mute);line-height:1.35;margin-top:6px}
+.pls{font-size:15.5px;margin:20px 0 8px;padding-top:12px;border-top:1px solid var(--rule)}
+.num2{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:800}
+body.vw-plan #panel,body.vw-issues #panel,body.vw-yield #panel,body.vw-breed #panel,
+body.vw-plan #today,body.vw-issues #today,body.vw-yield #today,body.vw-breed #today,
+body.vw-plan .dock,body.vw-issues .dock,body.vw-yield .dock,body.vw-breed .dock{visibility:hidden!important}
+body.vw-breed .ctrl{visibility:hidden!important}
+
+/* immediate tooltip */
+#tt{position:fixed;left:0;top:0;z-index:40;pointer-events:none;max-width:300px;background:rgba(11,13,10,.96);border:1px solid var(--rule);
+  padding:8px 11px 9px;font-size:14px;line-height:1.38;color:var(--ink);visibility:hidden}
+#tt.on{visibility:visible}
+#tt small{display:block;font-size:12.5px;color:var(--mute);margin-top:2px}
+#tt b{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:800}
+#tt .tl2{display:block;margin-top:3px}
+
+/* plan */
+.tl{position:relative;font-size:13px;--lab:112px}
+.tl .ln{display:grid;grid-template-columns:var(--lab) 1fr;align-items:center;height:24px;cursor:pointer}
+.tl .ln span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);transition:color .15s}
+.tl .tr{position:relative;height:100%}
+.tl .tr i{position:absolute;top:8px;height:8px;background:rgba(236,233,225,.16);transition:opacity .15s}
+.tl .tr i b{position:absolute;top:0;bottom:0;background:rgba(236,233,225,.55)}
+.tl .ln:hover span,.tl .ln.on span{color:var(--note)}
+.tl .ln.on .tr i b{background:var(--note)}
+.tl .ln.dim span{color:#6f6d66} .tl .ln.dim .tr i{opacity:.35}
+.tl .gr{position:absolute;top:0;bottom:0;width:1px;background:rgba(236,233,225,.08)}
+.tl .hd{display:grid;grid-template-columns:var(--lab) 1fr;height:20px;color:var(--mute);font-size:12px}
+.tl .hd div{position:relative}
+.tl .hd em{position:absolute;font-style:normal;white-space:nowrap}
+.tlw{position:relative}
+.wband{position:absolute;top:20px;bottom:0;background:rgba(242,198,109,.10);border-left:1px solid rgba(242,198,109,.5);border-right:1px solid rgba(242,198,109,.5);pointer-events:none;display:none}
+.wkb{--lab:112px}
+.wkb .bars{display:grid;grid-template-columns:var(--lab) 1fr;height:132px}
+.wkb .bt{position:relative}
+.wkb .bt>div{position:absolute;bottom:20px;height:104px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer}
+.wkb .bt>div:hover b,.wkb .bt>div.on b{color:var(--note)}
+.wkb .bt i{position:relative;display:block;width:62%;background:rgba(242,198,109,.5);transition:opacity .15s}
+.wkb .bt i.pk{background:rgba(242,198,109,.85)}
+.wkb .bt i.lt{background:rgba(236,233,225,.22)}
+.wkb .bt i u{position:absolute;left:0;right:0;bottom:0;background:var(--note);display:none}
+.wkb.vsel .bt i u{display:block}
+.wkb.vsel .bt i{background:rgba(236,233,225,.14)}
+.wkb .bt>div.on i{outline:1px solid var(--note);outline-offset:2px}
+.wkb .bt>div.dim i{opacity:.35}
+.wkb .bt b{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:800;font-size:13px;margin-bottom:3px}
+.wkb .bt small{position:absolute;bottom:-18px;font-size:11.5px;color:var(--mute);white-space:nowrap}
+.wkb .key{font-size:12.5px;color:var(--mute);margin-top:4px}
+.wk{padding:10px 8px 11px;border-top:1px solid var(--rule);margin:0 -8px}
+.wk:first-child{border-top:0}
+.wk.on{background:rgba(242,198,109,.07)}
+.wkh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:15.5px;cursor:pointer}
+.wkh:hover .wn{color:var(--note)}
+.wkh b{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:800;font-size:18px}
+.wkr{margin-top:5px;font-size:14px;line-height:1.45}
+.wkr button{text-align:left;padding:2px 0;line-height:1.35;display:block}
+.wkr button:hover,.wkr button:focus-visible,.wkr button.on{color:var(--note);outline:none}
+.wkr button.dim{color:#6f6d66}
+.wkr button b{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:800}
+.wkr div{color:var(--mute)}
+.wko{margin-top:6px;font-size:13.5px;color:var(--ink);line-height:1.45}
+.wko li{margin-left:18px;color:var(--mute)}
+.tg2.lt{border-color:var(--rule);color:var(--ink)}
+.tg2.pk{border-color:var(--note);color:var(--note)}
+.psel{font-size:13.5px;color:var(--note);min-height:20px;margin-top:6px}
+.psel button{color:var(--mute);margin-left:10px;text-decoration:underline;text-underline-offset:3px}
+
+/* issues */
+.iss{padding:12px 0 13px;border-top:1px solid var(--rule);display:grid;grid-template-columns:28px 1fr;gap:4px 10px}
+.iss.done .ih2,.iss.done .iw{opacity:.45}
+.iss input{width:18px;height:18px;margin-top:3px;accent-color:#f2c66d;cursor:pointer}
+.ih2{font-size:16px;line-height:1.3}
+.ih2 .tg2{vertical-align:2px}
+.iw{font-size:13.5px;color:var(--mute);line-height:1.4;margin-top:2px}
+.iw b{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:800;color:var(--ink)}
+.ia{display:flex;gap:16px;margin-top:5px;font-size:14px}
+.igrp{font-size:13.5px;color:var(--mute);margin:16px 0 2px}
+
+/* yield */
+.ytot{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:12px}
+.ytot div{line-height:1.1}
+.ytot b{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:800;font-size:26px;color:var(--ex)}
+.ytot small{display:block;font-size:12.5px;color:var(--mute);margin-top:3px}
+.yt{width:100%;border-collapse:collapse;font-size:13.5px}
+.yt th{font-weight:400;color:var(--mute);text-align:right;padding:4px 6px 6px;white-space:nowrap;font-size:12.5px}
+.yt th:first-child,.yt td:first-child{text-align:left;padding-left:0}
+.yt th button{color:inherit;font:inherit;padding:0}
+.yt th button:hover,.yt th button.on{color:var(--ink)}
+.yt th button.on::after{content:" \2193"}
+.yt th button.on.up::after{content:" \2191"}
+.yt td{padding:4px 6px;text-align:right;border-top:1px solid rgba(236,233,225,.08);white-space:nowrap}
+.yt td.n{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:800}
+.yt td.w{text-align:left;white-space:normal}
+.yt tr.rk{cursor:pointer}
+.yt tr.rk:hover td,.yt tr.on td{color:var(--note)}
+.yt svg{display:block}
+.ywrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.ytb{font-size:14px;line-height:1.5}
+.ytb b{font-family:var(--dot);font-variation-settings:"ROND" 100;font-weight:800}
+.ycmp{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:14px}
+.ycmp select{font:inherit;font-size:14px;background:#141611;color:var(--ink);border:1px solid var(--rule);padding:4px 6px}
+
+/* breeding */
+.bt2 td,.bt2 th{vertical-align:middle}
+#bbody{margin-top:14px}
+.bt2 tr.g td{border-top:1px solid var(--rule)}
+.bt2 a{color:var(--ink);text-decoration:underline;text-decoration-color:rgba(236,233,225,.4);text-underline-offset:3px}
+.bt2 a:hover{color:var(--note)}
+.bkey{font-size:12.5px;color:var(--mute);line-height:1.45;margin-top:10px}
+.bkey b{color:var(--ink);font-weight:400}
+
+/* back bar on phones when a sheet steps aside for the map */
+#pbar2{position:fixed;left:50%;top:64px;transform:translateX(-50%);z-index:8;background:rgba(11,13,10,.92);border:1px solid var(--rule);
+  padding:7px 12px 8px;font-size:14px;display:flex;gap:14px;align-items:center;visibility:hidden;max-width:calc(100vw - 32px)}
+#pbar2.on{visibility:visible}
+#pbar2 .lk{margin:0}
+@media (max-width:640px){
+  #nav{left:0;right:0;top:50px;padding:0 10px;overflow-x:auto;scrollbar-width:none}
+  #wip{left:16px;right:16px;top:84px;max-width:none;font-size:11.5px;line-height:1.3}
+  #nav button{font-size:15px;padding:5px 9px 7px;white-space:nowrap}
+  #today{top:118px} .ctrl{top:168px}
+  .sheet,.sheet.wide{left:0;right:0;top:116px;bottom:0;width:auto;padding:12px 16px 28px;background:rgba(11,13,10,.985)}
+  .sheet h2{font-size:20px}
+  .tl,.wkb{--lab:88px}
+  .wkb .bars{height:118px}
+  .wkb .bt small.odd{display:none}
+  #pbar2{left:16px;right:16px;transform:none;justify-content:space-between;top:118px}
+  #pbar2 .lk{white-space:nowrap}
+  body.vw-plan .ctrl,body.vw-issues .ctrl,body.vw-yield .ctrl{visibility:hidden!important}
+  body.mapback .ctrl{visibility:visible!important}
+  .ytot b{font-size:21px}
+}
+</style>
+</head>
+<body>
+<canvas id="map" aria-label="Satellite map of a blueberry farm. Rows with photos are lit; tap one to walk it."></canvas>
+
+<header class="top">
+  <div class="wm">fieldcount<small>walk the rows, a prototype</small></div>
+</header>
+
+<section id="intro">
+  <p class="k">One blueberry farm in July</p>
+  <h1>Co. Cork,<br><em>Ireland</em></h1>
+  <button class="go" id="go" disabled>Descend <span></span></button>
+  <p id="load">Loading imagery</p>
+</section>
+
+<div id="place"><div class="n" id="pn"></div><div class="s" id="ps"></div></div>
+
+<section id="panel" aria-live="polite">
+  <div class="pv">
+    <p class="pvl"><b class="num" id="nrows">0</b> rows have photos from July. Drag the walker onto a lit row, or tap one.</p>
+  </div>
+
+  <div class="ex">
+    <div class="exh">The farm on 20 July</div>
+    <div class="exn"><span class="num" id="pr">0</span><span class="u" style="margin-left:1px">% ripe now,</span> <span class="num" id="pripe">0</span><span class="u">berries ripe now</span></div>
+    <div class="sub">of <b id="pb">0</b> berries on <b id="pbu">0</b> bushes</div>
+    <div class="yld"><div><b class="num" id="ykg">0</b><span> kg</span><small>estimated crop</small></div><div><b class="num" id="ykr">0</b><span> kg</span><small>available to pick now</small></div></div>
+    <p class="yn">At 1.9 g a berry, for every variety.</p>
+    <div class="bar" id="pbar"><i></i><i></i><i></i></div>
+    <div class="views" role="group" aria-label="Colour the bushes by"><button id="vr" class="on">Ripeness</button><button id="vv">Variety</button></div>
+    <div class="leg rleg" style="margin-top:9px"><span style="--c:var(--ripe)">ripe</span><span style="--c:var(--mid)">mid-ripe</span><span style="--c:var(--unripe)">unripe</span><em>dot size shows berries</em></div>
+    <div class="vleg" id="vleg"></div>
+  </div>
+</section>
+
+<section id="today" aria-label="Today on the farm">
+  <button class="tdh" id="tdh" aria-expanded="true" aria-controls="tdb">Today on the farm<i></i></button>
+  <div class="tdb" id="tdb"></div>
+</section>
+<div id="tip" role="dialog" aria-live="polite"></div>
+
+<p id="wip">Work in progress: the farm figures, alerts and plans shown here are illustrative, not measured.</p>
+<nav id="nav" aria-label="Views"><button data-v="map" class="on">Map</button><button data-v="plan">Plan</button><button data-v="issues">Issues</button><button data-v="yield">Yield</button><button data-v="breed">Breeding</button></nav>
+
+<section class="sheet" id="sh-plan" aria-label="Plan for the coming weeks">
+  <h2>Plan for the coming weeks</h2>
+  <p class="pln">A typical plan for the next eight weeks. Each variety's window is typical for it, from published variety descriptions, placed by this farm's ripeness on 20 July.</p>
+  <div class="psel" id="psel"></div>
+  <div class="pls">When each variety ripens</div>
+  <div class="tlw"><div class="tl" id="tl"></div><div class="wband" id="wband"></div></div>
+  <p class="pln2">Faint bar: the picking window. Bright part: when the middle half of the berries ripen. Mixed rows are split along the row by the varieties on the row sheet. Hover or tap for details; click to pick out.</p>
+  <div class="pls">Picking load per week, in kg at 1.9 g a berry</div>
+  <div class="wkb" id="wkb"></div>
+  <div class="pls">Week by week</div>
+  <div id="wl"></div>
+</section>
+
+<section class="sheet" id="sh-issues" aria-label="Outstanding issues">
+  <h2>Outstanding issues</h2>
+  <p class="pln">What to see to, most pressing for this week first: rows with more fruit to pick in the next two weeks come first. Tick an item when it is done; ticks stay in this browser only.</p>
+  <div id="ilist"></div>
+</section>
+
+<section class="sheet" id="sh-yield" aria-label="Yield">
+  <h2>Yield</h2>
+  <p class="pln">As of 20 July. Kilograms use 1.9 g a berry for every variety.</p>
+  <div id="ybody"></div>
+</section>
+
+<section class="sheet wide" id="sh-breed" aria-label="Breeding">
+  <h2>For breeders: measured bushes</h2>
+  <p class="pln">Real measurements from our 3D models of potted bushes at the research plot, and of one stretch of a commercial row (Row 24). They are separate from the farm figures elsewhere on this page. Berry sizes are relative within each bush: 1 is that bush's average berry.</p>
+  <div id="bbody"></div>
+</section>
+
+<div id="pbar2" aria-live="polite"><span id="pbt"></span><button id="pbb" class="lk">Back</button></div>
+<div id="tt" role="tooltip"></div>
+
+<div class="ctrl" id="ctrl">
+  <button id="dock" class="dock" aria-label="Walker: drag onto a lit row to walk it"><span class="fig"></span></button>
+  <button id="zin" aria-label="Zoom in">+</button>
+  <button id="zout" aria-label="Zoom out">&minus;</button>
+  <button id="replay">Replay</button>
+</div>
+
+<article id="card" aria-live="polite">
+  <figure id="cfig"><img id="cimg" alt=""><figcaption id="ccap"></figcaption></figure>
+  <div class="cb">
+    <button class="cx" id="cx">close</button>
+    <div class="ch"><span id="cid"></span><span class="tag" id="ctag"></span></div>
+    <div class="cv" id="cvar"></div>
+    <div class="ct" id="ctot"></div>
+    <div class="cl" id="clab"></div>
+    <div class="split" id="csplit">
+      <div style="--c:var(--ripe)"><span id="c2"></span><small>ripe</small></div>
+      <div style="--c:var(--mid)"><span id="c1"></span><small>mid-ripe</small></div>
+      <div style="--c:var(--unripe)"><span id="c0"></span><small>unripe</small></div>
+    </div>
+    <div class="thumbs" id="cth"></div>
+    <div class="cr" id="crow"></div>
+  </div>
+</article>
+
+<div id="dragfig" class="fig" aria-hidden="true"></div>
+<div id="tgt" aria-hidden="true"></div>
+
+<section id="sv" aria-label="Row photos">
+  <div class="ph" id="svph"><img id="svBg" alt=""><img id="svA" alt=""><img id="svB" alt=""></div>
+  <div class="svtop">
+    <div class="svid"><div>Row <b class="num" id="svrow"></b></div><div class="svv" id="svvar"></div><div class="svv svw" id="svweedy" hidden></div></div>
+    <button id="svx" class="svx">Back to map</button>
+  </div>
+  <div id="svflag" hidden>Weeds in the row, check<small id="svflagw"></small></div>
+  <button class="svnav prev" id="svprev" aria-label="Step back along the row"><i></i></button>
+  <button class="svnav next" id="svnext" aria-label="Step forward along the row"><i></i></button>
+  <div class="svbot">
+    <canvas id="mini" aria-label="Where you are on the farm. Tap to go back to the map."></canvas>
+    <div class="svmeta">
+      <div class="svpos">about <b class="num" id="svm">0</b> m along the row</div>
+      <div class="track" id="svtrack"><div class="tl"></div><div id="svticks"></div><i id="svknob"></i></div>
+      <div class="svhint" id="svhint">Drag, scroll or use the arrow keys to walk.</div>
+    </div>
+  </div>
+</section>
+
+<footer class="attr">Imagery: Esri, Maxar, Earthstar Geographics, and the GIS User Community.<span class="lg"> Rows traced from this imagery and numbered from the farm's row sheet.</span> Row photos: our own walks, July 2026; places along a row are approximate.</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+window.FARM={"meta":{"seed":24,"spacing_m":1.0,"m_per_z18px":0.3695013672456487,"totals_pool":[626,470,425,523,441,280,306],"start":[327680.0,-491520.0],"levels":[[6,-3145728,-3145728],[7,-1572864,-1572864],[8,-786432,-786432],[9,-393216,-393216],[10,-196608,-196608],[11,-98304,-98304],[12,-49152,-49152],[13,-24576,-24576],[14,-12288,-12288],[15,-6144,-6144],[16,-3072,-3072],[17,-1536,-1536],[18,-768,-768],[19,-384.0,-384.0]],"levelSize":1536,"season":{"date":201,"year":2026,"anchor":186,"step":8,"classes":{"Sunset Blue":[0.0,35],"Blue Ribbon":[1.0,35],"Blue Ray":[1.0,35],"Toro":[2.0,24],"Chandler":[2.0,49],"Top Shelf":[2.5,35],"New Top Shelf":[2.5,35],"Bluecrop":[2.5,35],"Legacy":[3.0,42],"Cargo":[4.0,35],"Darrow":[4.0,35],"Last Call":[5.0,35]},"seed":2407,"gram":1.9}},"rows":[{"num":1,"kind":"blueberry","variety":"Last Call","note":"","zone":"zone 1","plot":"P3","a":[164.95,101.78],"b":[80.01,120.61],"len":32.1,"n":32,"g":0,"rev":false,"d0":0.0,"c":[[238,0,0],[508,0,0],[487,0,0],[353,0,0],[443,0,0],[326,0,0],[558,0,0],[519,0,0],[432,0,0],[316,0,0],[426,0,0],[328,0,0],[308,0,0],[278,0,0],[467,0,0],[392,0,0],[602,0,0],[427,0,0],[558,0,0],[403,0,0],[602,0,0],[280,0,0],[272,0,0],[443,0,0],[462,0,0],[442,0,0],[532,0,0],[428,0,0],[291,0,0],[269,0,0],[299,0,0],[432,0,0]],"sh":1.15},{"num":2,"kind":"blueberry","variety":"Last Call","note":"","zone":"zone 1","plot":"P3","a":[169.64,89.47],"b":[75.19,110.41],"len":35.7,"n":35,"g":0,"rev":true,"d0":36.1,"c":[[502,0,0],[616,0,0],[352,0,0],[462,0,0],[322,0,0],[407,0,0],[514,0,0],[304,0,0],[456,0,0],[394,0,0],[293,0,0],[284,0,0],[488,0,0],[524,0,0],[311,0,0],[694,0,0],[395,0,0],[299,0,0],[589,0,0],[276,0,0],[319,0,0],[425,0,0],[464,0,0],[290,0,0],[290,0,0],[313,0,0],[394,0,0],[330,0,0],[717,0,0],[497,0,0],[333,0,0],[401,0,0],[493,0,0],[381,0,0],[481,0,0]],"sh":2.08},{"num":3,"kind":"blueberry","variety":"Top Shelf","note":"","zone":"zone 1","plot":"P3","a":[171.36,79.87],"b":[71.29,102.06],"len":37.9,"n":37,"g":0,"rev":false,"d0":75.8,"c":[[616,14,1],[405,12,0],[388,11,1],[392,3,2],[430,10,1],[185,8,0],[292,15,2],[708,6,4],[338,1,0],[456,41,9],[673,13,2],[548,10,1],[684,13,0],[432,5,1],[513,2,1],[554,2,0],[451,4,0],[233,16,6],[418,4,3],[474,6,0],[477,3,0],[304,1,0],[277,1,0],[576,28,7],[245,1,0],[415,4,1],[398,12,1],[405,6,1],[692,10,2],[561,17,3],[341,2,1],[324,4,1],[394,2,0],[346,5,1],[477,5,2],[384,17,4],[410,9,0]],"sh":2.46},{"num":4,"kind":"blueberry","variety":"Top Shelf","note":"","zone":"zone 1","plot":"P3","a":[171.88,71.82],"b":[67.9,94.87],"len":39.4,"n":39,"g":0,"rev":true,"d0":117.7,"c":[[581,16,2],[255,5,2],[325,39,9],[538,14,1],[329,11,0],[286,6,2],[507,17,1],[326,15,3],[476,27,7],[512,15,2],[374,15,3],[492,34,10],[352,6,2],[313,5,0],[495,24,7],[504,29,7],[443,26,6],[234,21,5],[558,16,3],[424,13,10],[479,17,4],[873,21,3],[379,16,4],[305,17,2],[707,61,16],[221,10,1],[409,10,2],[389,7,0],[450,26,3],[438,54,19],[256,12,1],[289,26,3],[246,15,2],[366,20,4],[217,9,1],[439,15,1],[515,22,0],[575,21,4],[259,7,3]],"sh":-1.31},{"num":5,"kind":"blueberry","variety":"Blue Ribbon","note":"","zone":"zone 1","plot":"P3","a":[172.75,61.9],"b":[63.89,86.03],"len":41.2,"n":41,"g":0,"rev":false,"d0":161.1,"c":[[445,114,39],[327,108,50],[291,117,60],[371,112,72],[341,131,81],[244,97,70],[196,109,77],[282,114,73],[206,47,26],[281,113,61],[345,104,54],[146,114,143],[266,130,67],[215,142,89],[263,119,49],[285,126,85],[154,63,41],[387,127,64],[386,148,121],[262,134,84],[311,98,41],[210,99,61],[268,85,65],[203,119,86],[253,136,75],[254,71,37],[233,66,26],[135,71,34],[445,94,44],[397,102,42],[166,67,43],[229,58,20],[227,144,87],[156,53,26],[374,116,59],[176,126,100],[198,80,31],[290,82,56],[460,201,110],[277,61,32],[326,65,25]],"sh":0.89},{"num":6,"kind":"blueberry","variety":"Blue Ribbon","note":"","zone":"zone 1","plot":"P3","a":[173.73,52.46],"b":[60.23,77.62],"len":43.0,"n":42,"g":0,"rev":true,"d0":206.3,"c":[[412,91,37],[370,32,14],[445,102,43],[266,59,25],[349,77,24],[383,46,16],[256,43,10],[501,109,53],[273,100,74],[241,42,25],[169,40,14],[203,50,22],[407,63,13],[189,53,14],[616,83,14],[212,20,3],[398,114,49],[408,28,12],[197,39,17],[396,52,9],[444,63,31],[413,44,21],[238,38,16],[339,36,11],[222,27,7],[432,122,53],[408,81,40],[248,44,14],[600,87,27],[215,43,18],[365,59,24],[306,56,24],[222,23,7],[469,51,11],[630,83,21],[374,44,12],[294,32,18],[413,74,27],[500,58,28],[234,35,12],[469,106,52],[375,28,2]],"sh":5.62},{"num":7,"kind":"blueberry","variety":"Cargo","note":"","zone":"zone 1","plot":"P3","a":[175.85,43.54],"b":[56.98,69.89],"len":45.0,"n":44,"g":0,"rev":false,"d0":253.3,"c":[[588,1,0],[407,5,0],[548,1,0],[503,0,0],[452,1,0],[446,0,0],[469,0,0],[555,0,0],[677,3,0],[511,2,0],[266,1,0],[376,1,0],[669,1,0],[484,0,0],[508,0,0],[500,1,0],[473,0,0],[660,2,0],[264,0,0],[422,0,0],[571,0,0],[543,0,0],[444,0,0],[275,0,0],[521,1,0],[425,0,0],[551,1,0],[516,0,0],[659,0,0],[270,1,0],[428,0,0],[293,1,0],[557,2,0],[348,0,0],[577,1,1],[612,0,0],[468,0,0],[730,1,0],[254,0,0],[243,0,0],[287,0,0],[252,0,1],[287,0,0],[317,0,0]],"sh":-1.89},{"num":8,"kind":"blueberry","variety":"Cargo","note":"","zone":"zone 1","plot":"P3","a":[180.65,34.03],"b":[53.73,62.16],"len":48.0,"n":48,"g":0,"rev":true,"d0":302.3,"c":[[509,0,0],[403,0,0],[401,0,0],[278,0,0],[627,0,0],[389,0,0],[602,0,0],[639,0,0],[502,0,0],[482,0,0],[262,0,0],[310,0,0],[497,0,0],[495,0,0],[341,0,0],[444,0,0],[428,0,0],[403,0,0],[437,0,0],[298,0,0],[547,0,0],[430,0,0],[449,0,0],[552,0,0],[391,0,0],[395,0,0],[624,1,0],[284,0,0],[505,0,0],[509,0,0],[335,0,0],[645,0,0],[634,0,1],[494,0,0],[445,0,0],[602,0,0],[409,0,0],[421,1,0],[438,0,0],[639,0,0],[461,0,0],[281,0,0],[274,0,0],[483,0,0],[478,0,0],[292,0,0],[393,0,0],[258,0,0]],"sh":3.2},{"num":9,"kind":"blueberry","variety":"Sunset Blue","note":"","zone":"zone 1","plot":"P3","a":[185.4,24.27],"b":[52.14,53.81],"len":50.4,"n":50,"g":0,"rev":false,"d0":354.3,"c":[[157,153,203],[219,174,221],[51,117,321],[93,87,76],[139,126,115],[79,100,247],[50,82,146],[110,92,66],[81,105,216],[106,129,248],[113,126,154],[112,137,291],[110,90,101],[115,140,319],[77,72,115],[71,90,160],[59,111,308],[232,155,149],[60,74,168],[68,95,192],[166,145,141],[59,87,174],[69,95,131],[141,175,286],[64,95,147],[105,78,87],[95,125,240],[154,156,208],[59,53,123],[92,148,336],[96,130,173],[163,126,167],[150,189,319],[77,74,79],[140,147,227],[125,167,265],[127,105,174],[93,121,236],[42,62,177],[47,73,107],[116,97,133],[70,96,162],[58,121,269],[207,171,173],[52,83,129],[167,136,215],[123,138,229],[68,113,241],[253,165,154],[76,116,280]],"sh":1.03},{"num":10,"kind":"blueberry","variety":"Sunset Blue","note":"","zone":"zone 1","plot":"P3","a":[189.83,15.35],"b":[50.71,46.19],"len":52.7,"n":52,"g":0,"rev":true,"d0":408.7,"c":[[23,43,231],[48,102,339],[36,64,177],[105,141,249],[65,92,309],[51,112,396],[97,120,265],[57,99,379],[91,114,270],[42,81,277],[24,58,281],[61,89,253],[29,63,341],[24,55,229],[45,89,249],[18,71,314],[36,80,252],[102,97,261],[59,95,138],[33,47,171],[34,74,223],[118,170,339],[49,88,205],[33,60,208],[26,54,226],[50,103,408],[29,46,218],[104,146,325],[83,115,322],[52,109,292],[82,96,160],[36,54,247],[64,129,404],[85,120,188],[20,46,198],[74,88,214],[16,57,258],[76,142,303],[54,94,360],[53,82,193],[60,86,307],[38,74,285],[63,141,437],[48,51,160],[106,122,239],[46,115,286],[52,118,361],[80,116,279],[17,36,198],[22,67,207],[76,133,321],[30,82,336]],"sh":-2.61},{"num":11,"kind":"blueberry","variety":"Chandler / Darrow / Sunset Blue","note":"","zone":"zone 1","plot":"P3","a":[193.9,5.99],"b":[49.41,38.03],"len":54.7,"n":54,"g":0,"rev":false,"d0":465.4,"c":[[368,60,29],[463,66,38],[435,34,15],[544,43,16],[542,61,37],[607,94,48],[360,56,28],[398,39,27],[621,39,18],[418,29,14],[295,26,18],[347,33,19],[344,49,22],[433,59,34],[375,29,27],[356,40,9],[307,14,18],[481,55,22],[339,2,1],[400,0,0],[455,1,0],[375,2,0],[567,1,1],[441,1,0],[337,1,0],[305,1,0],[588,7,0],[446,8,0],[545,0,0],[241,0,1],[319,1,1],[442,0,0],[247,1,1],[307,0,0],[585,2,1],[357,0,0],[52,103,313],[94,145,270],[5,28,345],[28,49,311],[59,118,440],[50,116,301],[61,70,171],[34,59,253],[35,69,318],[62,106,291],[70,90,172],[45,103,434],[31,41,205],[29,62,188],[36,79,253],[24,41,218],[45,100,485],[25,55,186]],"sh":-3.77},{"num":12,"kind":"blueberry","variety":"Chandler / Darrow / Sunset Blue","note":"","zone":"zone 1","plot":"P3","a":[192.2,-2.85],"b":[47.95,29.13],"len":54.6,"n":54,"g":0,"rev":true,"d0":524.1,"c":[[237,7,6],[579,7,5],[587,6,7],[701,35,8],[453,14,3],[271,10,6],[479,10,5],[432,16,7],[445,14,6],[253,11,5],[418,17,12],[487,9,0],[321,15,2],[653,16,4],[412,9,2],[452,12,3],[280,0,1],[283,5,3],[261,0,0],[483,1,0],[384,0,0],[439,0,0],[281,0,0],[468,0,0],[330,0,0],[627,0,0],[736,0,0],[477,0,0],[445,0,0],[430,0,0],[573,0,1],[225,0,0],[807,0,0],[499,0,0],[458,0,0],[706,0,0],[158,120,105],[113,91,100],[246,158,153],[240,129,78],[79,75,114],[182,150,136],[267,167,149],[93,87,92],[274,139,122],[178,140,134],[308,132,76],[192,127,107],[192,83,66],[309,168,121],[139,93,91],[185,169,252],[59,83,115],[153,133,124]],"sh":4.5},{"num":13,"kind":"blueberry","variety":"Chandler / Darrow / Sunset Blue","note":"","zone":"zone 1","plot":"P3","a":[190.46,-10.66],"b":[46.71,21.21],"len":54.4,"n":54,"g":0,"rev":false,"d0":582.7,"c":[[453,23,11],[521,18,6],[402,40,18],[611,30,8],[542,30,21],[462,25,20],[479,30,12],[293,16,6],[401,16,17],[425,20,13],[581,29,10],[340,36,16],[448,17,2],[387,23,9],[432,25,8],[485,15,8],[307,13,6],[663,28,6],[301,0,0],[239,0,0],[535,1,0],[243,0,0],[504,0,0],[595,1,0],[563,0,0],[443,0,0],[471,0,0],[497,1,0],[300,0,0],[293,0,0],[328,1,0],[478,0,0],[528,0,0],[613,0,0],[464,0,0],[413,0,0],[75,153,374],[40,58,145],[104,125,220],[74,100,201],[117,152,302],[123,145,231],[122,175,346],[104,144,366],[73,92,123],[122,117,142],[132,174,307],[63,85,167],[54,110,325],[61,80,216],[74,118,242],[75,86,121],[77,106,186],[29,46,145]],"sh":0.27},{"num":14,"kind":"blueberry","variety":"Chandler / Darrow","note":"","zone":"zone 1","plot":"P3","a":[187.16,-18.63],"b":[47.55,12.32],"len":52.8,"n":52,"g":0,"rev":true,"d0":641.1,"c":[[519,42,16],[655,22,15],[535,33,17],[350,48,24],[414,23,9],[427,40,29],[269,13,5],[453,56,23],[364,14,5],[376,25,22],[390,61,21],[374,26,16],[266,13,5],[213,29,19],[523,23,16],[248,14,7],[712,36,15],[261,9,1],[418,37,29],[400,12,5],[307,42,26],[590,46,10],[307,17,2],[269,22,15],[311,45,22],[466,28,12],[423,2,0],[563,0,2],[483,2,0],[416,1,0],[502,0,0],[571,0,0],[490,2,0],[403,1,0],[315,1,0],[409,0,0],[468,0,0],[555,0,0],[470,0,0],[612,1,0],[651,0,0],[415,0,0],[506,0,0],[436,0,0],[303,0,0],[503,0,0],[374,0,0],[268,0,0],[269,1,0],[468,0,0],[576,0,0],[428,1,0]],"sh":-1.15},{"num":15,"kind":"blueberry","variety":"New Top Shelf","note":"","zone":"zone 1","plot":"P3","a":[171.6,-24.14],"b":[48.59,3.13],"len":46.6,"n":46,"g":0,"rev":false,"d0":697.9,"c":[[629,14,2],[495,39,9],[648,13,7],[537,64,19],[390,33,9],[429,28,10],[426,65,29],[257,18,8],[420,44,13],[503,51,12],[437,33,5],[385,26,3],[491,39,8],[203,25,11],[515,47,15],[385,38,7],[613,46,13],[222,51,24],[455,25,8],[356,47,7],[373,54,12],[511,37,4],[178,23,9],[336,64,32],[269,12,0],[301,25,3],[382,22,4],[355,28,8],[251,25,5],[638,117,34],[462,47,9],[271,22,3],[392,37,8],[274,20,4],[340,66,26],[382,30,5],[549,37,5],[585,18,2],[247,36,4],[210,32,12],[486,42,11],[491,54,14],[257,15,4],[431,22,9],[190,30,12],[351,32,8]],"sh":-3.64},{"num":16,"kind":"blueberry","variety":"Toro","note":"","zone":"zone 1","plot":"P3","a":[154.44,-28.79],"b":[49.48,-5.52],"len":39.7,"n":39,"g":0,"rev":true,"d0":748.5,"c":[[344,37,3],[283,86,19],[538,11,0],[326,52,7],[630,31,2],[243,32,1],[291,22,3],[513,15,0],[366,78,11],[376,87,14],[197,60,11],[207,22,6],[261,24,2],[391,98,19],[473,88,12],[162,58,17],[494,27,4],[428,69,9],[208,64,14],[488,34,4],[253,86,10],[246,18,0],[425,137,29],[181,74,15],[287,11,0],[492,23,0],[255,50,7],[261,31,3],[502,19,2],[481,67,3],[244,43,4],[399,19,1],[570,31,3],[364,104,17],[249,31,2],[357,82,16],[452,38,5],[433,172,27],[651,88,9]],"sh":1.19},{"num":17,"kind":"blueberry","variety":"Last Call","note":"","zone":"zone 2","plot":"P2","a":[147.58,-62.94],"b":[129.85,-31.61],"len":13.3,"n":13,"g":1,"rev":false,"d0":0.0,"c":[[323,0,0],[298,0,0],[317,0,0],[296,0,0],[563,0,0],[468,0,0],[425,0,0],[413,0,0],[661,0,0],[478,0,0],[412,0,0],[553,0,0],[440,0,0]],"sh":0.62},{"num":18,"kind":"blueberry","variety":"Last Call","note":"sheet also has Top Shelf written faintly","zone":"zone 2","plot":"P2","a":[149.47,-86.58],"b":[116.84,-28.92],"len":24.5,"n":24,"g":1,"rev":true,"d0":17.3,"c":[[507,0,0],[469,0,0],[413,0,0],[407,0,0],[457,0,0],[446,0,0],[448,0,0],[484,0,0],[431,0,0],[408,0,0],[395,0,0],[419,0,0],[326,0,0],[517,0,0],[276,0,0],[665,0,0],[529,0,0],[228,0,0],[507,0,0],[504,0,0],[483,0,0],[507,0,0],[347,0,0],[426,0,0]],"sh":2.34},{"num":19,"kind":"blueberry","variety":"Top Shelf","note":"","zone":"zone 2","plot":"P2","a":[143.23,-93.84],"b":[106.05,-28.13],"len":27.9,"n":27,"g":1,"rev":false,"d0":45.8,"c":[[325,33,20],[388,43,13],[530,52,15],[378,37,11],[480,38,9],[401,15,5],[460,12,1],[463,63,15],[456,47,13],[432,24,4],[606,37,9],[287,17,4],[241,27,10],[405,52,22],[347,46,18],[260,13,5],[359,15,6],[191,45,13],[388,71,32],[445,46,10],[283,33,9],[387,44,13],[400,20,5],[586,96,31],[510,18,2],[649,62,16],[433,10,3]],"sh":-4.3},{"num":20,"kind":"blueberry","variety":"Blue Ribbon","note":"","zone":"zone 2","plot":"P2","a":[134.57,-97.31],"b":[94.93,-27.24],"len":29.7,"n":29,"g":1,"rev":true,"d0":77.7,"c":[[148,69,58],[322,149,86],[285,99,48],[294,106,89],[252,116,82],[353,131,68],[258,121,60],[317,119,41],[268,108,56],[164,109,68],[163,107,112],[368,181,127],[206,143,113],[245,132,108],[322,111,53],[201,69,33],[346,171,144],[392,185,114],[94,86,101],[364,145,56],[267,152,141],[147,65,43],[275,111,99],[222,116,88],[159,64,39],[228,43,17],[301,129,86],[165,106,64],[158,65,48]],"sh":-0.88},{"num":21,"kind":"blueberry","variety":"Chandler","note":"","zone":"zone 2","plot":"P2","a":[126.02,-100.99],"b":[83.8,-26.36],"len":31.7,"n":31,"g":1,"rev":false,"d0":111.4,"c":[[410,24,13],[223,21,8],[396,33,18],[260,23,10],[301,14,9],[309,16,4],[515,26,13],[398,23,10],[270,20,4],[369,23,16],[307,45,16],[712,44,21],[263,19,3],[303,20,15],[470,36,26],[416,32,14],[267,17,13],[476,40,15],[408,38,15],[703,23,14],[447,22,6],[459,35,16],[437,49,44],[542,41,18],[428,31,3],[405,34,11],[464,41,20],[339,39,23],[364,21,19],[255,28,11],[283,28,20]],"sh":-1.75},{"num":22,"kind":"blueberry","variety":"Bluecrop","note":"","zone":"zone 2","plot":"P2","a":[115.36,-100.42],"b":[73.01,-25.57],"len":31.8,"n":31,"g":1,"rev":true,"d0":147.1,"c":[[456,22,1],[453,15,1],[546,5,0],[516,15,1],[306,11,1],[371,17,7],[425,19,2],[469,16,2],[252,12,2],[594,22,5],[438,10,0],[418,71,39],[499,25,4],[453,7,4],[428,16,1],[243,6,0],[471,29,3],[416,5,0],[555,27,3],[280,13,5],[349,1,0],[334,41,9],[419,29,4],[256,13,3],[342,18,2],[416,8,0],[604,10,1],[707,26,6],[644,24,5],[372,6,0],[583,17,1]],"sh":0.24},{"num":23,"kind":"blueberry","variety":"Bluecrop","note":"","zone":"zone 2","plot":"P2","a":[105.25,-99.82],"b":[62.78,-24.75],"len":31.9,"n":31,"g":1,"rev":false,"d0":182.9,"c":[[471,46,10],[486,37,15],[391,21,4],[442,9,4],[293,27,8],[288,20,3],[336,29,9],[188,17,4],[378,38,15],[552,37,11],[742,49,14],[616,27,8],[413,9,1],[445,52,12],[328,12,1],[368,55,18],[693,58,25],[651,22,4],[272,41,18],[465,25,6],[304,16,3],[373,22,5],[248,21,6],[350,9,2],[272,19,3],[357,13,1],[321,14,6],[497,48,17],[306,17,2],[484,51,25],[234,26,7]],"sh":-2.54},{"num":24,"kind":"blueberry","variety":"Bluecrop","note":"","zone":"zone 2","plot":"P2","a":[94.46,-99.03],"b":[67.26,-50.94],"len":20.4,"n":20,"g":1,"rev":true,"d0":218.8,"c":[[502,23,2],[521,16,1],[397,14,5],[434,16,5],[321,3,4],[305,6,0],[364,10,0],[207,2,0],[411,18,2],[591,6,3],[778,19,8],[609,35,7],[405,15,3],[498,9,2],[329,12,0],[426,12,3],[698,64,14],[648,26,3],[324,5,2],[481,13,2]],"sh":0.67},{"num":25,"kind":"blueberry","variety":"Blue Ribbon","note":"","zone":"zone 2","plot":"P2","a":[84.14,-98.55],"b":[72.2,-77.44],"len":9.0,"n":8,"g":1,"rev":false,"d0":243.2,"c":[[501,118,41],[338,86,45],[342,67,38],[387,67,14],[273,113,80],[326,57,25],[193,64,28],[273,118,53]],"sh":2.65},{"num":null,"kind":"aronia","variety":"Aronia","note":"","zone":"zone 3, north block","plot":"P1u","a":[12.14,-105.39],"b":[14.29,-70.2],"len":13.0,"n":0,"g":2,"rev":false,"d0":0.0},{"num":null,"kind":"gooseberry","variety":"Gooseberry","note":"","zone":"zone 3, north block","plot":"P1u","a":[3.9,-104.88],"b":[6.01,-70.45],"len":12.7,"n":0,"g":2,"rev":true,"d0":17.0},{"num":26,"kind":"blueberry","variety":"Last Call","note":"","zone":"zone 3, north block","plot":"P1u","a":[-4.83,-104.35],"b":[-2.77,-70.66],"len":12.5,"n":12,"g":2,"rev":false,"d0":33.7,"c":[[546,0,0],[412,0,0],[279,0,0],[266,0,0],[640,0,0],[502,0,0],[719,0,0],[546,0,0],[332,0,0],[342,0,0],[421,0,0],[493,0,0]],"sh":3.08},{"num":27,"kind":"blueberry","variety":"Top Shelf","note":"","zone":"zone 3, north block","plot":"P1u","a":[-12.55,-103.63],"b":[-10.54,-70.69],"len":12.2,"n":12,"g":2,"rev":true,"d0":50.2,"c":[[487,24,2],[446,18,4],[279,13,1],[602,6,0],[259,4,1],[525,10,1],[336,2,0],[494,15,1],[612,12,0],[388,2,0],[435,18,3],[502,9,1]],"sh":2.34},{"num":28,"kind":"blueberry","variety":"Chandler","note":"","zone":"zone 3, north block","plot":"P1u","a":[-18.54,-103.26],"b":[-16.56,-70.82],"len":12.0,"n":12,"g":2,"rev":false,"d0":66.4,"c":[[441,26,15],[235,11,7],[486,11,5],[396,14,11],[431,51,25],[508,20,7],[455,48,35],[379,23,13],[531,27,16],[199,13,7],[387,29,14],[285,10,8]],"sh":0.16},{"num":null,"kind":"aronia","variety":"Aronia","note":"","zone":"zone 3, north block","plot":"P1u","a":[-29.52,-102.59],"b":[-27.6,-71.15],"len":11.6,"n":0,"g":2,"rev":true,"d0":82.4},{"num":29,"kind":"blueberry","variety":"Legacy","note":"","zone":"zone 3, north block","plot":"P1u","a":[-37.51,-102.1],"b":[-35.63,-71.41],"len":11.4,"n":11,"g":2,"rev":false,"d0":98.0,"c":[[286,18,6],[391,23,7],[454,21,8],[300,17,2],[505,56,11],[378,18,7],[268,18,6],[447,23,7],[384,40,15],[321,15,11],[236,17,17]],"sh":-6.85},{"num":30,"kind":"blueberry","variety":"Legacy","note":"","zone":"zone 3, north block","plot":"P1u","a":[-45.24,-101.63],"b":[-43.41,-71.68],"len":11.1,"n":11,"g":2,"rev":true,"d0":113.4,"c":[[293,5,1],[787,3,1],[412,1,0],[266,2,0],[480,0,0],[381,3,1],[472,3,3],[472,2,0],[280,1,0],[464,5,1],[605,3,0]],"sh":2.57},{"num":31,"kind":"blueberry","variety":"Chandler","note":"","zone":"zone 3, north block","plot":"P1u","a":[-52.96,-100.9],"b":[-51.18,-71.71],"len":10.8,"n":10,"g":2,"rev":false,"d0":128.5,"c":[[206,16,5],[373,34,10],[524,87,51],[575,44,19],[232,21,11],[397,19,15],[371,18,7],[608,43,21],[354,37,30],[500,53,20]],"sh":-2.29},{"num":32,"kind":"blueberry","variety":"Chandler","note":"","zone":"zone 3, north block","plot":"P1u","a":[-61.45,-100.39],"b":[-59.71,-71.94],"len":10.5,"n":10,"g":2,"rev":true,"d0":143.3,"c":[[658,23,5],[643,13,4],[509,9,3],[674,24,9],[217,16,4],[424,9,3],[291,5,0],[475,14,10],[311,7,2],[286,2,2]],"sh":3.98},{"num":33,"kind":"blueberry","variety":"Top Shelf / Last Call","note":"","zone":"zone 3, north block","plot":"P1u","a":[-69.43,-99.9],"b":[-67.74,-72.2],"len":10.3,"n":10,"g":2,"rev":false,"d0":157.8,"c":[[431,0,1],[421,19,2],[475,13,1],[368,11,0],[474,13,0],[307,0,0],[259,0,0],[449,0,0],[287,0,0],[407,0,0]],"sh":0.93},{"num":34,"kind":"blueberry","variety":"Top Shelf / Last Call","note":"","zone":"zone 3, north block","plot":"P1u","a":[-77.92,-99.38],"b":[-76.27,-72.43],"len":10.0,"n":9,"g":2,"rev":true,"d0":172.1,"c":[[650,21,4],[480,14,3],[357,14,1],[655,5,1],[524,24,4],[446,0,0],[332,0,0],[393,0,0],[408,0,0]],"sh":1.32},{"num":null,"kind":"aronia","variety":"Aronia","note":"","zone":"zone 3, south block","plot":"P1l","a":[-63.58,-62.53],"b":[-65.06,-6.05],"len":20.9,"n":0,"g":3,"rev":false,"d0":0.0},{"num":35,"kind":"blueberry","variety":"Sunset Blue","note":"","zone":"zone 3, south block","plot":"P1l","a":[-55.34,-62.07],"b":[-56.81,-6.09],"len":20.7,"n":20,"g":3,"rev":true,"d0":24.9,"c":[[33,85,332],[62,134,312],[28,63,199],[33,84,273],[22,68,459],[77,128,427],[26,64,138],[6,29,253],[25,82,330],[112,127,206],[39,82,343],[54,97,267],[46,96,350],[61,105,418],[35,71,220],[23,78,284],[30,62,445],[68,132,394],[38,113,563],[26,52,203]],"sh":-4.36},{"num":36,"kind":"blueberry","variety":"Sunset Blue","note":"","zone":"zone 3, south block","plot":"P1l","a":[-47.1,-61.6],"b":[-48.56,-6.12],"len":20.5,"n":20,"g":3,"rev":false,"d0":49.6,"c":[[70,116,378],[116,112,161],[71,114,244],[45,91,332],[87,145,352],[94,111,222],[96,141,290],[60,84,153],[86,88,177],[218,149,114],[62,75,77],[53,91,185],[55,78,190],[255,158,150],[120,134,181],[133,101,145],[51,80,121],[142,139,172],[200,121,99],[99,176,360]],"sh":0.4},{"num":37,"kind":"blueberry","variety":"Sunset Blue","note":"","zone":"zone 3, south block","plot":"P1l","a":[-39.12,-60.89],"b":[-40.56,-5.91],"len":20.3,"n":20,"g":3,"rev":true,"d0":74.1,"c":[[138,74,81],[209,149,125],[355,150,95],[135,54,42],[182,73,47],[71,63,89],[238,128,112],[215,130,116],[256,159,144],[161,98,91],[221,120,102],[229,180,227],[202,143,147],[115,137,223],[189,126,137],[324,129,71],[271,119,72],[244,122,129],[186,110,106],[74,68,114]],"sh":4.97},{"num":38,"kind":"blueberry","variety":"Top Shelf","note":"","zone":"zone 3, south block","plot":"P1l","a":[-30.63,-60.42],"b":[-32.05,-5.94],"len":20.1,"n":20,"g":3,"rev":false,"d0":98.4,"c":[[433,22,3],[446,4,0],[360,6,3],[298,6,1],[416,10,2],[249,2,0],[329,17,2],[370,8,2],[234,13,1],[229,10,5],[478,9,2],[377,30,4],[458,35,3],[262,20,4],[462,14,1],[268,24,1],[374,8,1],[268,8,0],[624,33,7],[386,9,3]],"sh":-0.0},{"num":39,"kind":"blueberry","variety":"Blue Ribbon","note":"","zone":"zone 3, south block","plot":"P1l","a":[-21.64,-59.93],"b":[-23.05,-5.95],"len":20.0,"n":19,"g":3,"rev":true,"d0":122.5,"c":[[128,84,88],[209,64,42],[610,124,47],[228,79,25],[207,89,46],[299,104,47],[277,101,61],[161,80,51],[502,110,63],[338,70,34],[201,124,112],[351,63,13],[476,141,54],[298,103,44],[489,103,34],[160,68,37],[270,105,68],[295,107,40],[194,46,20]],"sh":1.52},{"num":null,"kind":"aronia","variety":"Aronia","note":"","zone":"zone 3, south block","plot":"P1l","a":[-14.65,-59.5],"b":[-16.05,-6.02],"len":19.8,"n":0,"g":3,"rev":false,"d0":146.5},{"num":40,"kind":"blueberry","variety":"Blue Ray","note":"","zone":"zone 3, south block","plot":"P1l","a":[-6.16,-59.03],"b":[-7.54,-6.05],"len":19.6,"n":19,"g":3,"rev":true,"d0":170.3,"c":[[155,82,83],[119,75,70],[361,163,114],[300,113,44],[304,97,63],[280,138,85],[184,127,124],[137,76,50],[208,127,98],[170,99,64],[219,127,89],[206,95,61],[165,83,43],[345,104,77],[236,83,54],[308,98,59],[216,36,18],[505,117,60],[395,148,104]],"sh":-0.33},{"num":41,"kind":"blueberry","variety":"Blue Ray","note":"","zone":"zone 3, south block","plot":"P1l","a":[2.08,-58.56],"b":[0.71,-6.08],"len":19.4,"n":19,"g":3,"rev":false,"d0":193.9,"c":[[386,58,21],[285,35,11],[354,42,15],[638,158,78],[272,27,4],[386,38,10],[363,76,27],[427,43,15],[198,45,27],[474,93,36],[303,39,21],[324,87,24],[406,53,12],[236,39,18],[461,14,6],[330,54,15],[325,69,27],[396,72,22],[529,54,24]],"sh":5.51},{"num":42,"kind":"blueberry","variety":"Bluecrop","note":"","zone":"zone 3, south block","plot":"P1l","a":[10.07,-58.1],"b":[8.71,-6.12],"len":19.2,"n":19,"g":3,"rev":true,"d0":217.3,"c":[[355,8,2],[403,9,0],[548,16,4],[494,5,2],[250,11,0],[600,13,2],[417,17,1],[494,27,6],[589,19,6],[272,9,0],[683,31,6],[316,7,0],[618,21,5],[392,15,1],[451,11,3],[351,10,1],[469,13,0],[481,13,2],[545,5,1]],"sh":0.94},{"num":43,"kind":"blueberry","variety":"Bluecrop","note":"","zone":"zone 3, south block","plot":"P1l","a":[18.82,-57.62],"b":[17.46,-5.89],"len":19.1,"n":19,"g":3,"rev":false,"d0":240.5,"c":[[226,9,0],[530,25,8],[388,6,1],[274,11,1],[295,13,1],[481,10,3],[650,12,0],[528,31,9],[400,19,4],[526,16,0],[575,14,2],[586,37,7],[349,3,0],[370,37,10],[436,4,2],[410,7,3],[750,16,2],[225,25,5],[739,29,7]],"sh":0.13},{"num":null,"kind":"gooseberry","variety":"Gooseberry","note":"","zone":"zone 3, south block","plot":"P1l","a":[26.81,-57.16],"b":[25.46,-5.93],"len":18.9,"n":0,"g":3,"rev":true,"d0":263.6}]};
+
+</script>
+<script>
+window.ROWPH={"rows":[{"row":2,"cap":"Row2_Jul19","date":"19 July","start":"b","frames":[[24,0.0],[99,0.0909],[124,0.1212],[149,0.1515],[199,0.2121],[249,0.2727],[274,0.303],[299,0.3333],[349,0.3939],[374,0.4242],[424,0.4848],[449,0.5152],[499,0.5758],[549,0.6364],[574,0.6667],[624,0.7273],[649,0.7576],[699,0.8182],[724,0.8485],[774,0.9091],[799,0.9394],[849,1.0]],"weedy":"Grass","weedshare":0.77,"weeds":[],"wf":[2,5,6,7,8,9,10,11,12,13,16,17,18,19,20]},{"row":7,"cap":"Row7_Jul21","date":"21 July","start":"b","frames":[[49,0.0303],[74,0.0606],[124,0.1212],[149,0.1515],[199,0.2121],[249,0.2727],[274,0.303],[299,0.3333],[349,0.3939],[399,0.4545],[424,0.4848],[449,0.5152],[499,0.5758],[549,0.6364],[574,0.6667],[599,0.697],[649,0.7576],[674,0.7879],[724,0.8485],[749,0.8788],[799,0.9394],[849,1.0]],"weedy":null,"weedshare":0.0,"weeds":[],"wf":[]},{"row":11,"cap":"Row11_Jul22","date":"22 July","start":"b","frames":[[87,0.0],[162,0.0909],[187,0.1212],[237,0.1818],[262,0.2121],[312,0.2727],[337,0.303],[362,0.3333],[412,0.3939],[437,0.4242],[487,0.4848],[512,0.5152],[562,0.5758],[612,0.6364],[637,0.6667],[662,0.697],[712,0.7576],[762,0.8182],[787,0.8485],[837,0.9091],[862,0.9394],[887,0.9697]],"weedy":null,"weedshare":0.0,"weeds":[],"wf":[]},{"row":14,"cap":"Row14_Jul26","date":"26 July","start":"b","frames":[[24,0.0],[74,0.0606],[124,0.1212],[174,0.1818],[199,0.2121],[249,0.2727],[274,0.303],[324,0.3636],[349,0.3939],[399,0.4545],[424,0.4848],[449,0.5152],[499,0.5758],[549,0.6364],[574,0.6667],[599,0.697],[649,0.7576],[674,0.7879],[724,0.8485],[749,0.8788],[799,0.9394],[824,0.9697]],"weedy":null,"weedshare":0.03,"weeds":[],"wf":[2]},{"row":19,"cap":"Row19_Jul20","date":"20 July","start":"b","frames":[[24,0.0],[99,0.0909],[124,0.1212],[174,0.1818],[199,0.2121],[224,0.2424],[274,0.303],[324,0.3636],[349,0.3939],[399,0.4545],[424,0.4848],[449,0.5152],[499,0.5758],[524,0.6061],[574,0.6667],[599,0.697],[649,0.7576],[674,0.7879],[724,0.8485],[774,0.9091],[799,0.9394],[849,1.0]],"weedy":"Grass","weedshare":0.87,"weeds":[],"wf":[3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]},{"row":21,"cap":"Row21_Jul24","date":"24 July","start":"b","frames":[[223,0.0],[398,0.0869],[841,0.3069],[1038,0.4047],[1260,0.5149],[1412,0.5904],[1667,0.717],[2013,0.8888],[2237,1.0]],"weedy":null,"weedshare":0.0,"weeds":[],"wf":[]},{"row":22,"cap":"Row22_Jul26","date":"26 July","start":"b","frames":[[49,0.0303],[74,0.0606],[124,0.1212],[174,0.1818],[199,0.2121],[249,0.2727],[274,0.303],[299,0.3333],[349,0.3939],[399,0.4545],[424,0.4848],[474,0.5455],[499,0.5758],[549,0.6364],[574,0.6667],[624,0.7273],[649,0.7576],[674,0.7879],[724,0.8485],[774,0.9091],[799,0.9394],[849,1.0]],"weedy":null,"weedshare":0.0,"weeds":[],"wf":[]},{"row":24,"cap":"Row24_Jul19","date":"19 July","start":"b","frames":[[120,0.0448],[128,0.0478],[328,0.1224],[376,0.1403],[584,0.2179],[664,0.2478],[752,0.2806],[952,0.3552],[1072,0.4],[1208,0.4507],[1224,0.4567],[1344,0.5015],[1504,0.5612],[1592,0.594],[1800,0.6716],[1928,0.7194],[1976,0.7373],[2080,0.7761],[2288,0.8537],[2320,0.8657],[2504,0.9343],[2608,0.9731]],"weedy":"Grass","weedshare":0.67,"weeds":[],"wf":[2,3,4,5,6,9,10,12,13,14,15,16,17,18,19,20]}]};
+
+</script>
+<script>
+window.BREED=[{"id":"Plant1_May20","name":"Bush 1","date":"20 May","sort":520,"stage":"Green fruit","total":445,"counts":[439,6,0],"clusters":100,"mean":4.4,"median":3.5,"max":13,"singles":25,"hist":[25,11,14,8,9,5,5,10,6,2,2,1,2,0],"sizeCV":0.236,"rel":[0.731,0.848,0.998,1.15,1.296],"small":0.184,"large":0.178,"even":null,"nEven":2,"h":[0.246,0.334,0.547,0.901,0.945],"hRipe":null,"hUnripe":0.612,"clusterH":[0.42,0.93,0.29,0.72,0.95,0.99,0.75,0.95,0.93,0.81,0.32,0.94,0.94,0.92,0.26,0.51,0.31,0.83,0.34,0.87,0.94,0.43,0.48,0.43,0.89,0.87,0.91,0.43,0.9,0.45,0.44,0.32,0.91,0.55,0.47,0.15,0.86,0.16,0.3,0.27,0.89,0.84,0.2,0.87,0.8,0.2,0.36,0.94,0.89,0.86,0.24,0.92,0.44,0.44,0.25,0.92,0.12,0.32,0.37,0.33,0.35,0.75,0.53,0.44,0.52,0.08,0.32,0.3,0.96,0.21,0.56,0.0,0.2,0.41,0.84],"loose":1.68,"farm":false},{"id":"Plant1_Jun16","name":"Bush 1","date":"16 Jun","sort":616,"stage":"Green fruit","total":523,"counts":[523,0,0],"clusters":104,"mean":5.0,"median":4.0,"max":13,"singles":18,"hist":[18,9,18,8,8,7,8,12,6,2,5,1,2,0],"sizeCV":0.23,"rel":[0.718,0.837,0.991,1.156,1.286],"small":0.195,"large":0.187,"even":null,"nEven":0,"h":[0.118,0.253,0.47,0.861,0.951],"hRipe":null,"hUnripe":0.498,"clusterH":[0.41,0.02,0.21,0.15,0.37,0.02,0.34,0.98,0.52,0.32,0.87,0.05,0.56,0.32,0.77,0.92,0.48,0.48,0.19,0.13,0.89,0.14,0.17,0.51,0.49,0.51,0.12,0.96,0.84,0.88,0.14,0.26,0.51,0.49,0.9,0.1,0.54,0.77,0.82,0.52,0.98,0.29,0.34,0.86,0.34,0.28,0.96,0.37,0.99,0.29,0.47,0.13,0.99,0.1,0.9,0.95,0.3,0.94,0.93,0.98,0.95,0.98,0.66,0.9,0.16,0.38,0.93,0.06,0.4,0.25,0.3,0.27,0.26,0.95,0.93,0.99,0.9,0.31,0.89,0.26,0.36,0.82,0.78,0.23,0.25,0.83],"loose":1.9,"farm":false},{"id":"Plant1_Jul1","name":"Bush 1","date":"1 Jul","sort":701,"stage":"Ripening","total":425,"counts":[277,2,146],"clusters":95,"mean":4.5,"median":3.0,"max":14,"singles":21,"hist":[21,18,11,8,7,5,4,4,6,4,3,2,1,1],"sizeCV":0.242,"rel":[0.689,0.816,0.997,1.168,1.339],"small":0.228,"large":0.207,"even":0.752,"nEven":36,"h":[0.1,0.266,0.416,0.821,0.921],"hRipe":0.395,"hUnripe":0.523,"clusterH":[0.93,0.1,0.82,0.51,0.34,0.88,0.15,0.55,0.32,0.85,0.36,0.04,0.97,0.02,0.15,0.34,0.3,0.44,0.55,0.17,0.95,0.33,0.22,0.19,0.52,0.86,0.85,0.51,0.09,0.07,0.21,0.32,0.33,0.32,0.76,0.89,0.52,0.51,0.31,0.86,0.57,0.83,0.3,0.51,0.51,0.26,0.8,0.88,0.07,0.36,0.93,0.33,0.58,0.43,0.94,0.2,0.38,0.53,0.8,0.4,0.41,0.99,0.27,0.75,0.09,0.1,0.94,0.27,0.17,0.69,0.28,0.3,0.3,0.51],"loose":1.53,"farm":false},{"id":"Plant2_Jun16","name":"Bush 2","date":"16 Jun","sort":616,"stage":"Green fruit","total":441,"counts":[440,0,1],"clusters":88,"mean":5.0,"median":4.0,"max":14,"singles":20,"hist":[20,6,8,13,11,3,4,5,6,4,2,3,2,1],"sizeCV":0.259,"rel":[0.689,0.806,0.977,1.171,1.336],"small":0.243,"large":0.213,"even":null,"nEven":0,"h":[0.307,0.411,0.685,0.807,0.867],"hRipe":null,"hUnripe":0.611,"clusterH":[0.39,0.82,0.98,0.69,0.41,0.73,0.85,0.92,0.75,0.79,0.49,0.58,0.88,0.7,0.35,0.37,0.81,0.01,0.84,0.58,0.58,0.84,0.86,0.32,0.62,0.04,0.71,0.38,0.06,0.49,0.7,0.81,0.81,0.58,0.7,0.61,0.26,0.25,0.13,0.69,0.75,0.67,0.52,0.79,0.33,0.8,0.43,0.94,0.56,0.36,0.65,0.68,0.79,0.59,0.77,0.76,0.23,0.92,0.34,0.37,0.37,0.8,0.44,0.88,0.8,0.09,0.44,0.57],"loose":1.72,"farm":false},{"id":"Plant2_June30","name":"Bush 2","date":"30 Jun","sort":630,"stage":"Ripening","total":447,"counts":[230,31,186],"clusters":78,"mean":5.7,"median":5.0,"max":14,"singles":10,"hist":[10,6,8,11,7,8,8,2,2,5,4,2,4,1],"sizeCV":0.254,"rel":[0.685,0.823,0.989,1.175,1.316],"small":0.224,"large":0.233,"even":0.709,"nEven":46,"h":[0.26,0.358,0.65,0.734,0.839],"hRipe":0.577,"hUnripe":0.57,"clusterH":[0.73,0.72,0.36,0.27,0.02,0.76,0.82,0.71,0.39,0.42,0.68,0.64,0.57,0.34,0.83,0.76,0.34,0.64,0.63,0.77,0.5,0.31,0.82,0.72,0.66,0.9,0.88,0.7,0.34,0.06,0.98,0.31,0.59,0.61,0.66,0.8,0.32,0.66,0.22,0.7,0.23,0.61,0.66,0.73,0.97,0.31,0.7,0.43,0.26,0.19,0.51,0.65,0.7,0.45,0.85,0.93,0.69,0.72,0.44,0.15,0.69,0.71,0.13,0.62,0.89,0.86,0.34,0.91],"loose":1.44,"farm":false},{"id":"Plant7_Jun16","name":"Bush 7","date":"16 Jun","sort":616,"stage":"Green fruit","total":306,"counts":[297,9,0],"clusters":57,"mean":5.4,"median":6.0,"max":14,"singles":9,"hist":[9,6,7,4,2,3,10,10,2,1,0,0,0,3],"sizeCV":0.218,"rel":[0.763,0.865,0.98,1.113,1.26],"small":0.16,"large":0.137,"even":0.827,"nEven":6,"h":[0.133,0.209,0.364,0.602,0.841],"hRipe":null,"hUnripe":0.417,"clusterH":[0.14,0.52,0.02,0.19,0.24,0.14,0.47,0.2,0.11,0.36,0.66,0.6,0.98,0.22,0.37,0.39,0.44,0.25,0.36,0.18,0.67,0.86,0.61,0.23,0.21,0.3,0.91,0.74,0.37,0.33,0.25,0.26,0.66,0.73,0.39,0.82,0.65,0.47,0.57,0.42,0.21,0.45,0.13,0.9,0.44,0.84,0.91,0.18],"loose":1.62,"farm":false},{"id":"Plant7_Jul1","name":"Bush 7","date":"1 Jul","sort":701,"stage":"Ripening","total":280,"counts":[67,9,204],"clusters":52,"mean":5.4,"median":5.0,"max":14,"singles":5,"hist":[5,5,4,9,6,2,9,6,3,1,0,0,1,1],"sizeCV":0.203,"rel":[0.741,0.864,1.004,1.118,1.26],"small":0.168,"large":0.15,"even":0.823,"nEven":39,"h":[0.162,0.214,0.374,0.612,0.883],"hRipe":0.389,"hUnripe":0.548,"clusterH":[0.43,0.33,0.19,0.64,0.52,0.17,0.22,0.03,0.98,0.2,0.19,0.37,0.89,0.36,0.33,0.6,0.67,0.94,0.53,0.53,0.22,0.76,0.46,0.12,0.14,0.48,0.11,0.28,0.17,0.71,0.3,0.86,0.62,0.59,0.23,0.22,0.3,0.23,0.96,0.6,0.44,0.27,0.94,0.99,0.13,0.86,0.21],"loose":1.47,"farm":false},{"id":"Plant9_June30","name":"Bush 9","date":"30 Jun","sort":630,"stage":"Green fruit","total":451,"counts":[348,5,98],"clusters":77,"mean":5.9,"median":5.0,"max":14,"singles":7,"hist":[7,10,3,10,9,6,11,4,5,3,2,4,2,1],"sizeCV":0.285,"rel":[0.657,0.794,0.984,1.167,1.359],"small":0.259,"large":0.217,"even":0.709,"nEven":37,"h":[0.076,0.182,0.341,0.586,0.809],"hRipe":0.301,"hUnripe":0.411,"clusterH":[0.01,0.1,0.31,0.1,0.27,0.76,0.4,0.38,0.34,0.6,0.04,0.34,0.27,0.04,0.2,0.44,0.26,0.2,0.18,0.41,0.27,0.53,0.64,0.37,0.55,0.09,0.32,0.31,0.61,0.37,0.12,0.55,0.99,0.17,0.61,0.07,0.34,0.13,0.43,0.29,0.93,0.09,0.91,0.3,0.62,0.67,0.59,0.81,0.89,0.06,0.87,0.86,0.3,0.61,0.41,0.43,0.41,0.23,0.1,0.58,0.87,0.07,0.95,0.82,0.81,0.36,0.98,0.9,0.98,0.6],"loose":1.62,"farm":false},{"id":"Plant11_Jun16","name":"Bush 11","date":"16 Jun","sort":616,"stage":"Green fruit","total":626,"counts":[626,0,0],"clusters":127,"mean":4.9,"median":4.0,"max":14,"singles":20,"hist":[20,19,21,13,8,12,7,5,5,0,6,5,3,3],"sizeCV":0.2,"rel":[0.757,0.874,0.989,1.12,1.272],"small":0.144,"large":0.157,"even":null,"nEven":0,"h":[0.15,0.286,0.426,0.728,0.885],"hRipe":null,"hUnripe":0.489,"clusterH":[0.74,0.35,0.7,0.7,0.77,0.15,0.15,0.07,0.31,0.07,0.43,0.37,0.02,0.25,0.32,0.94,0.16,0.31,0.48,0.55,0.2,0.65,0.21,0.3,0.48,0.35,0.65,0.47,0.72,0.06,0.89,0.4,0.16,0.47,0.97,0.41,0.17,0.25,0.91,0.29,0.65,0.4,0.33,0.36,0.35,0.38,0.3,0.32,0.64,0.28,0.69,0.22,0.26,0.65,0.86,0.17,0.47,0.74,0.81,0.84,0.66,0.37,0.94,0.92,0.72,0.79,0.15,0.36,0.13,0.6,0.81,0.76,0.43,0.43,0.95,0.39,0.9,0.38,0.9,0.81,0.93,0.78,0.9,0.59,0.81,0.67,0.61,0.88,0.36,0.54,0.75,0.31,0.81,0.39,0.93,0.84,0.91,0.9,0.52,0.88,0.64,0.89,0.75,0.88,0.76,0.86,0.84],"loose":1.69,"farm":false},{"id":"Plant11_Jun30","name":"Bush 11","date":"30 Jun","sort":630,"stage":"Green fruit","total":779,"counts":[647,26,106],"clusters":146,"mean":5.3,"median":5.0,"max":14,"singles":22,"hist":[22,18,11,16,16,14,7,15,7,8,4,3,2,3],"sizeCV":0.204,"rel":[0.75,0.866,0.989,1.124,1.25],"small":0.159,"large":0.149,"even":0.713,"nEven":41,"h":[0.209,0.372,0.481,0.737,0.885],"hRipe":0.481,"hUnripe":0.531,"clusterH":[0.56,0.16,0.43,0.27,0.53,0.27,0.62,0.26,0.42,0.07,0.55,0.72,0.95,0.98,0.21,0.37,0.01,0.71,0.56,0.46,0.43,0.42,0.68,0.49,0.92,0.85,0.41,0.39,1.0,0.75,0.26,0.43,0.88,0.42,0.51,0.79,0.78,0.3,0.22,0.38,0.57,0.37,0.94,0.37,0.38,0.73,0.41,0.19,0.43,0.72,0.82,0.8,0.43,0.35,0.47,0.21,0.72,0.39,0.15,0.32,0.51,0.69,0.78,0.89,0.02,0.6,0.73,0.85,0.17,0.39,0.43,0.98,0.85,0.82,0.37,0.51,0.4,0.39,0.32,0.52,0.55,0.28,0.49,0.39,0.84,0.64,0.49,0.43,0.77,0.85,0.78,0.4,0.73,0.21,0.23,0.43,0.79,0.97,0.16,0.83,0.84,0.48,0.69,0.95,0.78,0.25,0.79,0.44,0.94,0.92,0.47,0.73,0.02,0.74,0.24,0.93,0.89,0.71,0.71,0.94,0.94,0.95,0.17,0.93],"loose":1.44,"farm":false},{"id":"Plant14_Jun16","name":"Bush 14","date":"16 Jun","sort":616,"stage":"Green fruit","total":470,"counts":[470,0,0],"clusters":88,"mean":5.3,"median":5.0,"max":14,"singles":14,"hist":[14,7,12,10,11,6,7,3,5,2,5,0,2,4],"sizeCV":0.233,"rel":[0.736,0.825,0.972,1.148,1.3],"small":0.211,"large":0.187,"even":null,"nEven":0,"h":[0.159,0.369,0.567,0.724,0.903],"hRipe":null,"hUnripe":0.538,"clusterH":[0.63,0.51,0.8,0.23,0.59,0.2,0.88,0.47,0.02,0.16,0.48,0.57,0.98,0.64,0.65,0.11,0.02,0.9,0.51,0.63,0.4,0.88,0.23,0.41,0.2,0.85,0.65,0.62,0.94,0.56,0.61,0.34,0.51,0.06,0.96,0.71,0.62,0.46,0.66,0.69,0.2,0.94,0.98,0.64,0.49,0.42,0.4,0.17,0.07,0.38,0.2,0.67,0.64,0.98,0.51,0.07,0.8,0.21,0.46,0.45,0.56,0.38,0.38,0.94,0.87,0.84,0.77,0.93,0.53,0.9,0.89,0.73,0.85,0.69],"loose":1.67,"farm":false},{"id":"Plant14_June30","name":"Bush 14","date":"30 Jun","sort":630,"stage":"Green fruit","total":499,"counts":[350,25,124],"clusters":97,"mean":5.1,"median":5.0,"max":12,"singles":15,"hist":[15,6,11,12,8,13,12,4,8,5,1,2,0],"sizeCV":0.236,"rel":[0.703,0.845,0.996,1.156,1.314],"small":0.19,"large":0.206,"even":0.632,"nEven":42,"h":[0.148,0.392,0.507,0.728,0.918],"hRipe":0.574,"hUnripe":0.532,"clusterH":[0.5,0.37,0.41,0.91,0.85,0.47,0.71,0.44,0.32,0.37,0.94,0.65,0.69,0.11,0.87,0.99,0.24,0.45,0.59,0.47,0.52,0.0,0.88,0.14,0.33,0.56,0.47,0.49,0.51,0.46,0.53,0.54,0.84,0.5,0.46,0.81,0.29,0.14,0.96,0.44,0.96,0.96,0.15,0.12,0.66,0.49,0.49,0.52,0.5,0.3,0.33,0.72,0.88,0.05,0.62,0.4,0.62,0.35,0.4,0.65,0.92,0.05,0.55,0.52,0.99,0.72,0.69,0.84,0.1,0.1,0.88,0.3,0.41,0.81,0.4,0.81,0.86,0.47,0.84,0.93,0.55,0.66],"loose":1.35,"farm":false},{"id":"Plant15_Jun30","name":"Bush 15","date":"30 Jun","sort":630,"stage":"Green fruit","total":435,"counts":[316,18,101],"clusters":89,"mean":4.9,"median":4.0,"max":14,"singles":19,"hist":[19,10,6,11,10,4,9,4,6,4,3,2,0,1],"sizeCV":0.248,"rel":[0.699,0.835,0.986,1.155,1.288],"small":0.193,"large":0.186,"even":0.699,"nEven":30,"h":[0.119,0.251,0.586,0.764,0.883],"hRipe":0.308,"hUnripe":0.597,"clusterH":[0.25,0.61,0.59,0.16,0.59,0.81,0.12,0.77,0.28,0.53,0.07,0.61,0.69,0.37,0.95,0.2,0.32,0.07,0.12,0.69,0.67,0.39,0.93,0.68,0.85,0.87,0.14,0.85,0.97,0.73,0.07,0.13,0.9,0.39,0.78,0.2,0.07,1.0,0.26,0.82,0.22,0.58,0.78,0.39,0.01,0.9,0.57,0.68,0.79,0.53,0.42,0.05,0.73,0.56,0.83,0.68,0.31,0.54,0.88,0.62,0.59,0.61,0.47,0.56,0.6,0.92,0.29,0.68,0.62,0.69],"loose":1.42,"farm":false},{"id":"Row24_Jul19","name":"Row 24","date":"19 Jul","sort":719,"stage":"Farm row","total":522,"counts":[337,59,126],"clusters":205,"mean":2.5,"median":2.0,"max":13,"singles":88,"hist":[88,47,20,22,9,5,5,4,3,1,0,0,1,0],"sizeCV":0.423,"rel":[0.027,0.877,1.099,1.287,1.378],"small":0.207,"large":0.366,"even":0.673,"nEven":52,"h":[0.394,0.467,0.573,0.819,0.9],"hRipe":0.605,"hUnripe":0.636,"clusterH":[0.8,0.57,0.8,0.94,0.91,0.75,0.88,0.78,0.52,0.55,0.87,0.46,0.47,0.4,0.48,0.42,0.97,0.81,0.42,0.86,0.81,0.91,0.85,0.84,0.57,0.39,0.47,0.51,0.85,0.41,0.59,0.35,0.52,0.82,0.64,0.53,0.52,0.91,0.9,0.51,0.46,0.49,0.81,0.51,0.89,0.48,0.88,0.67,0.2,0.42,0.29,0.5,0.57,0.85,0.23,0.38,0.52,0.7,0.49,0.85,0.5,0.17,0.99,0.58,0.43,0.4,0.5,0.63,0.46,0.78,0.27,0.23,0.5,0.48,0.58,0.65,0.48,0.69,0.49,0.24,0.52,0.84,0.17,0.46,0.93,0.83,0.26,0.43,0.91,0.47,0.53,0.25,0.52,0.42,0.75,0.45,0.81,0.48,0.99,0.25,0.48,0.81,0.6,0.5,0.66,0.54,0.78,0.57,0.35,0.95,0.53,0.82,0.35,0.87,0.93,0.54,0.46],"loose":1.32,"farm":true}];
+
+</script>
+<script>
+(function(){
+"use strict";
+var D = window.FARM, M = D.meta, ROWS = D.rows;
+var RM = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+var cv = document.getElementById("map"), ctx = cv.getContext("2d");
+var $ = function(id){ return document.getElementById(id); };
+var COL = ["#8fa83a", "#c24a72", "#3f5bc4"];
+var VCOL = { "Last Call":"#e0823f", "Top Shelf":"#e8c547", "New Top Shelf":"#a98f2f", "Blue Ribbon":"#5aa9e6", "Cargo":"#c08a5a",
+  "Sunset Blue":"#e8709a", "Chandler":"#4fbf8f", "Toro":"#cbd86e", "Bluecrop":"#8d97ff", "Legacy":"#d65f5f", "Blue Ray":"#3fc6cf",
+  "mixed":"#c9c4b8", "aronia":"#7d6a86", "gooseberry":"#7f8a5e" };
+function vkey(r){ return r.kind !== "blueberry" ? r.kind : (VCOL[r.variety] ? r.variety : "mixed"); }
+var fmt = function(n){ return Math.round(n).toLocaleString("en-GB"); };
+var W = 0, H = 0, DPR = 1;
+var SP = M.spacing_m / M.m_per_z18px, MPP = M.m_per_z18px;
+var PH_MEAS = ["00596", "00894", "02384"];
+var PH_ALL = ["00298","00596","00894","01192","01490","01788","02086","02384"];
+
+/* ---------- rows and bushes ---------- */
+var bushes = [], meanT = 0, nEx = 0, DMAX = 0, groups = {}, MEAS = null;
+/* no measured row on this map: every row shows illustrative values (row 24 borrows its neighbour's example spread) */
+ROWS.forEach(function(r, i){ if (r.measured){ r.measured = false; if (!r.c){ var nb = (ROWS[i-1] && ROWS[i-1].c) ? ROWS[i-1] : ROWS[i+1]; r.c = []; for (var k = 0; k < r.n; k++) r.c.push(nb.c[k % nb.c.length].slice()); } } });
+ROWS.forEach(function(r, ri){
+  var ax = r.a[0], ay = r.a[1], bx = r.b[0], by = r.b[1];
+  r.cnt = [0,0,0]; r.tot = 0; r.list = []; r.vk = vkey(r);
+  r.label = r.num ? "Row " + r.num : (r.kind === "aronia" ? "Aronia row" : "Gooseberry row");
+  if (r.measured) MEAS = r;
+  for (var k = 0; k < r.n; k++){
+    var f = (k + 0.5) / r.n, pos = f * r.len;
+    var c = r.c ? r.c[k] : null, t = c ? c[0]+c[1]+c[2] : 0;
+    var b = { x: ax+(bx-ax)*f, y: ay+(by-ay)*f, row: ri, k: k, c: c, t: t,
+              d: r.d0 + (r.rev ? r.len - pos : pos), ph: PH_ALL[(ri*7 + k*3) % PH_ALL.length] };
+    if (c){ r.cnt[0]+=c[0]; r.cnt[1]+=c[1]; r.cnt[2]+=c[2]; r.tot += t; meanT += t; nEx++; }
+    bushes.push(b); r.list.push(b);
+  }
+  DMAX = Math.max(DMAX, r.d0 + r.len);
+  (groups[r.g] = groups[r.g] || []).push(r);
+});
+meanT /= nEx;
+Object.keys(groups).forEach(function(g){ groups[g].sort(function(a, b){ return a.d0 - b.d0; }); });
+
+/* ---------- rows with photos ---------- */
+var PH = (window.ROWPH && window.ROWPH.rows) || [], FLAGS = [], WROWS = [];
+PH.forEach(function(p){
+  for (var i = 0; i < ROWS.length; i++) if (ROWS[i].num === p.row){ p.ri = i; ROWS[i].ph = p; break; }
+});
+PH = PH.filter(function(p){ return p.ri != null; });
+// weed stretches from the photos: [first frame, last frame, what is seen]; whole weedy rows separately
+PH.forEach(function(p){ (p.weeds || []).forEach(function(w){ FLAGS.push({ p: p, k0: w[0], k1: w[1], k: Math.round((w[0] + w[1])/2), what: w[2] }); });
+  if (p.weedy) WROWS.push(p); });
+function kIn(p, k){ return FLAGS.some(function(F){ return F.p === p && k >= F.k0 && k <= F.k1; }); }
+function stretchT(F){ var fr = F.p.frames, h0 = F.k0 > 0 ? (fr[F.k0][1] - fr[F.k0-1][1])/2 : 0, h1 = F.k1 < fr.length - 1 ? (fr[F.k1+1][1] - fr[F.k1][1])/2 : 0;
+  return [Math.max(0, fr[F.k0][1] - h0), Math.min(1, fr[F.k1][1] + h1)]; }
+function sideLine(r, t0, t1, off){ var a = rowPt(r, t0), b = rowPt(r, t1), u = rowUnit(r), o = off/MPP; return [[a[0] - u[1]*o, a[1] + u[0]*o], [b[0] - u[1]*o, b[1] + u[0]*o]]; }
+function rEnds(r){ return r.ph && r.ph.start === "a" ? [r.a, r.b] : [r.b, r.a]; }
+function rowPt(r, t){ var e = rEnds(r); return [e[0][0] + (e[1][0]-e[0][0])*t, e[0][1] + (e[1][1]-e[0][1])*t]; }
+function rowAng(r){ var e = rEnds(r); return Math.atan2(e[1][1]-e[0][1], e[1][0]-e[0][0]); }
+function rowT(r, x, y){ var e = rEnds(r), vx = e[1][0]-e[0][0], vy = e[1][1]-e[0][1];
+  return clamp(((x-e[0][0])*vx + (y-e[0][1])*vy)/(vx*vx + vy*vy), 0, 1); }
+function nearK(p, t){ var bk = 0, bd = 9; p.frames.forEach(function(f, k){ var d = Math.abs(f[1] - t); if (d < bd){ bd = d; bk = k; } }); return bk; }
+function frameSrc(p, k){ return "media/rows/r" + p.row + "_" + ("0000" + p.frames[k][0]).slice(-5) + ".webp"; }
+function metres(p, k){ return Math.round(p.frames[k][1] * ROWS[p.ri].len); }
+
+/* ---------- estimated yield: berries x 1.9 g (one weight for every variety) ---------- */
+var GRAM = 1.9;
+function kg(berries){ return berries * GRAM / 1000; }
+function fkg(berries){ var v = kg(berries); return v < 10 ? v.toFixed(1) : fmt(v); }
+var BLOCKS = {};
+ROWS.forEach(function(r){ if (r.kind !== "blueberry") return; var B = BLOCKS[r.g] = BLOCKS[r.g] || { lo: 99, hi: 0, t: 0, r2: 0 };
+  B.lo = Math.min(B.lo, r.num); B.hi = Math.max(B.hi, r.num); B.t += r.tot; B.r2 += r.cnt[2]; });
+
+/* ---------- today on the farm: notes tied to spots ---------- */
+var NOTES = [];
+function rowMid(r){ return [(r.a[0]+r.b[0])/2, (r.a[1]+r.b[1])/2]; }
+function rowUnit(r){ var dx = r.b[0]-r.a[0], dy = r.b[1]-r.a[1], L = Math.hypot(dx, dy); return [dx/L, dy/L]; }
+var BR = ROWS.filter(function(r){ return r.kind === "blueberry" && r.tot > 0; });
+// pick today: the three rows with the most ripe fruit now, by weight
+var PICK = BR.slice().sort(function(a, b){ return b.cnt[2] - a.cnt[2]; }).slice(0, 3);
+PICK.forEach(function(r){
+  var u = rowUnit(r), L = 2.2/MPP, P = [r.a[0] - u[0]*L, r.a[1] - u[1]*L];
+  NOTES.push({ kind: "pick", r: r, x: P[0], y: P[1], zoom: 1.5,
+    html: "Row " + r.num + ": <b>" + fkg(r.cnt[2]) + "</b> kg ripe now<small>Pick today: most ripe fruit now, by weight.</small>" });
+});
+// photo hints: weeds in the row
+function mRange(F){ var T = stretchT(F), L = ROWS[F.p.ri].len, a = Math.round(T[0]*L), b = Math.round(T[1]*L); return a === b ? "about <b>" + a + "</b> m in" : "about <b>" + a + "</b> to <b>" + b + "</b> m in"; }
+FLAGS.forEach(function(F){
+  var r = ROWS[F.p.ri], T = stretchT(F), S2 = sideLine(r, T[0], T[1], -1.4), P = [(S2[0][0] + S2[1][0])/2, (S2[0][1] + S2[1][1])/2];
+  F.note = { kind: "weeds", r: r, x: P[0], y: P[1], zoom: 2.0, look: F, seg: S2,
+    html: "Weeds in the row, check<small>Row " + r.num + ", " + mRange(F) + ". " + F.what + " around the bushes, from the photos.</small>" };
+  NOTES.push(F.note);
+});
+WROWS.forEach(function(p){
+  var r = ROWS[p.ri], S2 = sideLine(r, 0, 1, -1.4), P = [(S2[0][0] + S2[1][0])/2, (S2[0][1] + S2[1][1])/2];
+  p.wnote = { kind: "weeds", r: r, x: P[0], y: P[1], zoom: 1.6, look: { p: p, k: Math.floor(p.frames.length/2) }, seg: S2,
+    html: "Row " + r.num + ": weedy along most of the row<small>" + p.weedy + " around the bushes in <b>" + Math.round(100*p.weedshare) + "</b>% of the photos. Automatic, check on the ground.</small>" };
+  NOTES.push(p.wnote);
+});
+// uneven ripening: among rows of one variety that is in season, the row furthest from that variety's average ripe share
+var UNEV = null;
+(function(){
+  var byV = {};
+  BR.forEach(function(r){ if (r.variety.indexOf(" / ") < 0) (byV[r.variety] = byV[r.variety] || []).push(r); });
+  Object.keys(byV).forEach(function(v){
+    var rs = byV[v]; if (rs.length < 2) return;
+    var sh = function(r){ return r.cnt[2]/r.tot; }, mean = rs.reduce(function(a, r){ return a + sh(r); }, 0)/rs.length;
+    if (mean < 0.05) return;
+    rs.forEach(function(r){ var others = rs.filter(function(q){ return q !== r; }), m2 = others.reduce(function(a, q){ return a + sh(q); }, 0)/others.length, d = Math.abs(sh(r) - m2);
+      if (!UNEV || d > UNEV.d) UNEV = { d: d, r: r, m: m2, v: v }; });
+  });
+})();
+if (UNEV){
+  var ur = UNEV.r, um = rowMid(ur);
+  UNEV.note = { kind: "uneven", r: ur, x: um[0], y: um[1], zoom: 1.7,
+    html: "Uneven ripening in row " + ur.num + "<small><b>" + Math.round(100*ur.cnt[2]/ur.tot) + "</b>% ripe now, against <b>" + Math.round(100*UNEV.m) + "</b>% in the other " + UNEV.v + " rows.</small>" };
+  NOTES.push(UNEV.note);
+}
+// possible disease: illustrative alerts, placed with a fixed seed. Nothing is detected.
+var DIS = [];
+(function(){
+  var a = 20261124 >>> 0, rnd = function(){ a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  var pool = bushes.filter(function(b){ return b.c && !ROWS[b.row].ph; }), used = {};
+  while (DIS.length < 2){ var b = pool[Math.floor(rnd()*pool.length)]; if (used[b.row]) continue; used[b.row] = 1;
+    var r = ROWS[b.row];
+    DIS.push({ kind: "disease", r: r, b: b, x: b.x, y: b.y, zoom: 2.3,
+      html: "Possible disease, row " + r.num + ", bush " + (b.k + 1) + "<small>Check the leaves and fruit of this bush.</small>" }); }
+  DIS.sort(function(p, q){ return p.r.num - q.r.num; });
+  DIS.forEach(function(n){ NOTES.push(n); });
+})();
+
+/* variety legend */
+(function(){
+  var seen = {}, html = "";
+  ROWS.forEach(function(r){ seen[r.vk] = (seen[r.vk] || 0) + 1; });
+  Object.keys(VCOL).forEach(function(k){ if (!seen[k]) return;
+    var name = k === "mixed" ? "mixed rows" : k === "aronia" ? "Aronia" : k === "gooseberry" ? "gooseberry" : k;
+    html += '<span class="' + (k === "aronia" || k === "gooseberry" ? "line" : "") + '" style="--c:' + VCOL[k] + '">' + name + "</span>"; });
+  $("vleg").innerHTML = html;
+})();
+
+/* ---------- imagery levels ---------- */
+var LV = M.levels.map(function(l){
+  var z = l[0], f = Math.pow(2, 18 - z), img = new Image();
+  return { z: z, img: img, ok: false, x: l[1], y: l[2], s: M.levelSize * f };
+});
+/* levels load on demand: first the one that frames the farm, deeper ones only when the view gets there, one at a time */
+function loadLevel(L){
+  if (L.req) return; L.req = true; L.fade = 0;
+  L.img.decoding = "async";
+  L.img.onload = function(){ L.ok = true; L.busy = false; gsap.to(L, { fade: 1, duration: RM ? 0 : 0.35, onUpdate: upd }); upd(); };
+  L.img.onerror = function(){ L.busy = false; };
+  L.busy = true; L.img.src = "media/levels/z" + L.z + ".webp";
+}
+function needLevels(){
+  if (LV.some(function(L){ return L.busy; })) return;
+  var k = K(), hd = Math.hypot(W, H)/2/k, off = Math.hypot(S.cx, S.cy), top = Math.min(19, Math.floor(S.s + 0.4));
+  // the coarsest level needed is the first one, going up from the screen's own zoom, that covers the screen
+  for (var i = LV.length - 1; i >= 0; i--){ var L = LV[i]; if (L.z > top) continue;
+    if (!L.req){ loadLevel(L); return; }
+    if (off + hd < L.s*0.37) break; }
+  // then finer levels as the zoom reaches them
+  for (var j = 0; j < LV.length; j++){ var Lj = LV[j]; if (Lj.z > top && Lj.z <= Math.min(19, S.s + 1.15) && !Lj.req){ loadLevel(Lj); return; } }
+}
+
+/* ---------- camera ---------- */
+var S = { s: 7, rot: 0, cx: M.start[0], cy: M.start[1], yo: 0, fill: 0, dark: 0, pin: 1 };
+var phase = "intro", dirty = true, hover = null, pinned = false, vmode = false, touched = false;
+
+function resize(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = Math.max(window.innerWidth, 1); H = Math.max(window.innerHeight, 1);
+  cv.width = Math.round(W*DPR); cv.height = Math.round(H*DPR);
+  cv.style.width = W + "px"; cv.style.height = H + "px";
+  if (phase === "intro") S.s = startS();
+  if (phase === "landed" && !touched) gsap.set(S, landing());
+  dirty = true;
+}
+function startS(){ return 7 + Math.log2(Math.min(W / 560, H / 720) * 0.95); }
+function landing(){
+  var x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+  ROWS.forEach(function(r){ [r.a, r.b].forEach(function(p){
+    if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }); });
+  var mob = W <= 640, top = mob ? 120 : 80, bot = mob ? 300 : 50, sideL = mob ? 16 : 420, sideR = mob ? 60 : (W >= 1100 ? 370 : 80);
+  if (!mob && W < 1000){ sideL = 40; bot = 360; }
+  var aw = W - sideL - sideR, ah = H - top - bot;
+  var k = Math.min(aw / (x1-x0), ah / (y1-y0));
+  return { s: 18 + Math.log2(k) - 0.05, rot: 0, cx: (x0+x1)/2 - ((sideL - sideR)/2)/k, cy: (y0+y1)/2 - ((top - bot)/2)/k, yo: 0 };
+}
+function K(){ return Math.pow(2, S.s - 18); }
+function toScreen(x, y){
+  var k = K(), c = Math.cos(S.rot), s = Math.sin(S.rot), dx = (x - S.cx)*k, dy = (y - S.cy)*k;
+  return [W/2 + dx*c - dy*s, H/2 + S.yo + dx*s + dy*c];
+}
+function toWorld(px, py){
+  var k = K(), c = Math.cos(-S.rot), s = Math.sin(-S.rot), x = (px - W/2)/k, y = (py - H/2 - S.yo)/k;
+  return [x*c - y*s + S.cx, x*s + y*c + S.cy];
+}
+function worldXf(){
+  var k = K();
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.translate(W/2, H/2 + S.yo); ctx.rotate(S.rot); ctx.scale(k, k); ctx.translate(-S.cx, -S.cy);
+}
+function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
+function sstep(a, b, v){ var t = clamp((v - a)/(b - a), 0, 1); return t*t*(3 - 2*t); }
+
+/* ---------- drawing ---------- */
+function drawImagery(){
+  var k = K(), hd = Math.hypot(W, H)/2/k, off = Math.hypot(S.cx, S.cy), start = 0;
+  for (var i = LV.length - 1; i >= 0; i--){
+    var L = LV[i], a = i === 0 ? 1 : clamp((S.s - L.z + 1.15)/0.75, 0, 1);
+    if (L.ok && a >= 1 && L.fade >= 1 && off + hd < L.s*0.37){ start = i; break; }
+  }
+  worldXf();
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+  for (var j = start; j < LV.length; j++){
+    var Lj = LV[j], aj = j === 0 ? 1 : clamp((S.s - Lj.z + 1.15)/0.75, 0, 1);
+    if (!Lj.ok || aj <= 0) continue;
+    ctx.globalAlpha = aj*Lj.fade; ctx.drawImage(Lj.img, Lj.x, Lj.y, Lj.s, Lj.s);
+  }
+  ctx.globalAlpha = 1;
+  if (S.dark > 0){
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.globalCompositeOperation = "saturation"; ctx.globalAlpha = 0.5*S.dark;
+    ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 0.32*S.dark;
+    ctx.fillStyle = "#070806"; ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+  }
+}
+function ends(r){ return r.rev ? [r.b, r.a] : [r.a, r.b]; }
+var run = [0,0,0], runN = 0;
+function drawMarks(){
+  var k = K(), dist = S.fill * (DMAX + 8), spx = SP*k;
+  var base = Math.max(1.8, Math.min(spx*0.55, 2.6 + spx*0.22)), pies = base >= 3.4 && !vmode, POP = 5/MPP;
+  run[0] = run[1] = run[2] = 0; runN = 0;
+  worldXf();
+
+  // rows with photos: a soft lit band under the row
+  ctx.lineCap = "round";
+  PH.forEach(function(p){
+    var r = ROWS[p.ri], pr = clamp((dist - r.d0)/r.len, 0, 1); if (pr <= 0) return;
+    var on = drag.on ? (drag.tg && drag.tg.p === p ? 1 : 0.5) : 0, a = sstep(0, 0.6, pr), gap = 2.9/MPP*k;   // rows are about 3 m apart
+    var e = ends(r), ux = (e[1][0]-e[0][0])/r.len*MPP, uy = (e[1][1]-e[0][1])/r.len*MPP, ov = 1.2/MPP;   // overshoot 1.2 m past each end
+    ctx.beginPath(); ctx.moveTo(e[0][0] - ux*ov, e[0][1] - uy*ov); ctx.lineTo(e[1][0] + ux*ov, e[1][1] + uy*ov);
+    ctx.save(); ctx.shadowColor = "rgba(255,246,214," + (a*(0.75 + 0.25*on)) + ")"; ctx.shadowBlur = Math.min(gap*0.6, 14) * DPR;
+    ctx.strokeStyle = "rgba(255,246,214," + (a*(0.24 + 0.4*on)) + ")"; ctx.lineWidth = Math.min(gap*0.55, 16)/k; ctx.stroke(); ctx.restore();
+  });
+  ctx.lineCap = "butt";
+  // driven rows; aronia and gooseberry rows as plain coloured lines
+  ROWS.forEach(function(r){
+    var p = clamp((dist - r.d0)/r.len, 0, 1); if (p <= 0) return;
+    var e = ends(r), sx = e[0][0], sy = e[0][1];
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + (e[1][0]-sx)*p, sy + (e[1][1]-sy)*p);
+    if (r.kind !== "blueberry"){ ctx.lineWidth = Math.max(2.5, spx*0.5)/k; ctx.strokeStyle = VCOL[r.kind]; }
+    else if (r.measured){ ctx.lineWidth = 2.4/k; ctx.strokeStyle = "rgba(243,236,219,.95)"; }
+    else { ctx.lineWidth = 1/k; ctx.strokeStyle = vmode ? VCOL[r.vk] : "rgba(236,233,225,.18)"; }
+    ctx.stroke();
+  });
+  if (hover && hover.row != null){
+    var hr = ROWS[hover.row]; ctx.lineWidth = 3/k; ctx.strokeStyle = "rgba(243,236,219,.6)";
+    ctx.beginPath(); ctx.moveTo(hr.a[0], hr.a[1]); ctx.lineTo(hr.b[0], hr.b[1]); ctx.stroke();
+  }
+  var paths = [new Path2D(), new Path2D(), new Path2D()], vp = {}, ring = new Path2D(), out = new Path2D();
+  for (var i = 0; i < bushes.length; i++){
+    var b = bushes[i], pop = clamp((dist - b.d)/POP, 0, 1);
+    if (pop <= 0) continue;
+    if (!b.c){ var rr = base*0.6*pop/k; ring.moveTo(b.x + rr, b.y); ring.arc(b.x, b.y, rr, 0, 6.2832); continue; }
+    run[0] += b.c[0]; run[1] += b.c[1]; run[2] += b.c[2]; runN++;
+    var e2 = pop < 1 ? 1 + 0.35*Math.sin(pop*Math.PI) : 1;
+    if (S.sweep >= 0){ var bsx = W/2 + (b.x - S.cx)*k, dd = (bsx - (-120 + (W + 240)*S.sweep))/70; e2 *= 1 + 0.8*Math.exp(-dd*dd); }
+    var r = base * clamp(Math.sqrt(b.t/meanT), 0.3, 1.5) * pop * e2 / k;
+    if (b.t === 0) continue;
+    if (vmode){
+      var key = ROWS[b.row].vk; var P = vp[key] = vp[key] || new Path2D();
+      P.moveTo(b.x + r, b.y); P.arc(b.x, b.y, r, 0, 6.2832); continue;
+    }
+    if (pies){
+      var a0 = -Math.PI/2 - S.rot;
+      for (var q = 0; q < 3; q++){
+        if (!b.c[q]) continue;
+        var a1 = a0 + 6.2832*b.c[q]/b.t;
+        paths[q].moveTo(b.x, b.y); paths[q].arc(b.x, b.y, r, a0, a1); paths[q].closePath(); a0 = a1;
+      }
+      out.moveTo(b.x + r, b.y); out.arc(b.x, b.y, r, 0, 6.2832);
+    } else {
+      var m = b.c[0] > b.c[2] ? (b.c[0] > b.c[1] ? 0 : 1) : (b.c[2] > b.c[1] ? 2 : 1);
+      paths[m].moveTo(b.x + r, b.y); paths[m].arc(b.x, b.y, r, 0, 6.2832);
+    }
+  }
+  if (pies){ ctx.lineWidth = 1.6/k; ctx.strokeStyle = "rgba(5,6,5,.75)"; ctx.stroke(out); }
+  if (vmode){ Object.keys(vp).forEach(function(key){ ctx.fillStyle = VCOL[key]; ctx.fill(vp[key]); }); }
+  else for (var q2 = 0; q2 < 3; q2++){ ctx.fillStyle = COL[q2]; ctx.fill(paths[q2]); }
+  ctx.lineWidth = 1.4/k; ctx.strokeStyle = "#f3ecdb"; ctx.stroke(ring);
+  // weeds from the photos: an orange line beside the row over the stretch
+  if (S.fill >= 1 && VIEW === "map"){
+    NOTES.forEach(function(n){ if (n.kind !== "weeds") return;
+      var hi = (hover && hover.note === n) || tipNote === n;
+      ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(n.seg[0][0], n.seg[0][1]); ctx.lineTo(n.seg[1][0], n.seg[1][1]);
+      ctx.strokeStyle = "rgba(8,9,7,.7)"; ctx.lineWidth = 5.5/k; ctx.stroke();
+      ctx.strokeStyle = hi ? "#ffd2a8" : "#ff8f3a"; ctx.lineWidth = 3/k; ctx.stroke(); ctx.lineCap = "butt";
+    });
+  }
+  // opening "today": the pick-today rows lit until the first touch
+  if (LIT){
+    ctx.lineCap = "round";
+    LIT.forEach(function(r){ ctx.beginPath(); ctx.moveTo(r.a[0], r.a[1]); ctx.lineTo(r.b[0], r.b[1]);
+      ctx.strokeStyle = "rgba(242,198,109,.32)"; ctx.lineWidth = Math.max(12, spx*1.9)/k; ctx.stroke();
+      ctx.strokeStyle = "#f2c66d"; ctx.lineWidth = 1.6/k; ctx.stroke(); });
+    ctx.lineCap = "butt";
+    var lr = LIT[0], LA = toScreen(lr.a[0], lr.a[1]);
+    ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.font = "400 14px Literata, Georgia, serif";
+    var lt = "Pick today: rows " + LIT.map(function(r){ return r.num; }).join(", "), lw = ctx.measureText(lt).width, lx = clamp(LA[0] + 14, 8, W - lw - 20), ly = clamp(LA[1] + 4, 80, H - 60);
+    ctx.fillStyle = "rgba(11,13,10,.86)"; ctx.fillRect(lx - 7, ly - 15, lw + 14, 22); ctx.fillStyle = "#f2c66d"; ctx.fillText(lt, lx, ly); ctx.restore(); worldXf();
+  }
+  // rows picked out in the plan
+  if (HL && VIEW !== "map"){
+    ctx.lineCap = "round";
+    HL.forEach(function(r){ ctx.beginPath(); ctx.moveTo(r.a[0], r.a[1]); ctx.lineTo(r.b[0], r.b[1]);
+      ctx.strokeStyle = "rgba(242,198,109,.35)"; ctx.lineWidth = Math.max(9, spx*1.6)/k; ctx.stroke();
+      ctx.strokeStyle = "#f2c66d"; ctx.lineWidth = 2/k; ctx.stroke(); });
+    ctx.lineCap = "butt";
+  }
+  // notes: small marks in the note colour (not a ripeness colour)
+  if (S.fill >= 1 && VIEW === "map"){
+    NOTES.forEach(function(n){
+      var hi = (hover && hover.note === n) || tipNote === n, col = hi ? "#fff0c8" : "#f2c66d", r = n.r;
+      ctx.lineCap = "round";
+      if (n.kind === "pick"){   // a short tab past the end of the row
+        var u = rowUnit(r), L0 = 0.8/MPP, L1 = 3.4/MPP;
+        ctx.beginPath(); ctx.moveTo(r.a[0] - u[0]*L0, r.a[1] - u[1]*L0); ctx.lineTo(r.a[0] - u[0]*L1, r.a[1] - u[1]*L1);
+        ctx.strokeStyle = "rgba(8,9,7,.8)"; ctx.lineWidth = 6.5/k; ctx.stroke(); ctx.strokeStyle = col; ctx.lineWidth = 3.6/k; ctx.stroke();
+      } else if (n.kind === "uneven"){   // a dashed line along the row
+        var u2 = rowUnit(r), o = 1.5/MPP, ox = -u2[1]*o, oy = u2[0]*o;
+        ctx.setLineDash([5/k, 5/k]); ctx.beginPath(); ctx.moveTo(r.a[0] + ox, r.a[1] + oy); ctx.lineTo(r.b[0] + ox, r.b[1] + oy);
+        ctx.strokeStyle = col; ctx.lineWidth = (hi ? 2.6 : 1.8)/k; ctx.stroke(); ctx.setLineDash([]);
+      } else if (n.kind === "disease"){   // a dashed ring: an example, not a finding
+        var rr = Math.max(8, base*1.9 + 3)/k;
+        ctx.setLineDash([3.5/k, 3/k]); ctx.beginPath(); ctx.arc(n.x, n.y, rr, 0, 6.2832);
+        ctx.strokeStyle = col; ctx.lineWidth = (hi ? 2.4 : 1.7)/k; ctx.stroke(); ctx.setLineDash([]);
+      }
+      ctx.lineCap = "butt";
+    });
+  }
+  // drop target while dragging the walker
+  if (drag.on && drag.tg){
+    var tr = ROWS[drag.tg.p.ri], T0 = rowPt(tr, clamp(drag.tg.t - 2/tr.len, 0, 1)), T1 = rowPt(tr, clamp(drag.tg.t + 2/tr.len, 0, 1));
+    ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(T0[0], T0[1]); ctx.lineTo(T1[0], T1[1]);
+    ctx.strokeStyle = "#f3ecdb"; ctx.lineWidth = 5/k; ctx.stroke(); ctx.lineCap = "butt";
+  }
+  if (hover && hover.b){
+    var hb = hover.b; ctx.lineWidth = 1.5/k; ctx.strokeStyle = "#f3ecdb"; ctx.beginPath();
+    ctx.arc(hb.x, hb.y, (base*1.9 + 3)/k, 0, 6.2832); ctx.stroke();
+  }
+  // opening sweep: a faint band of light crossing the rows
+  if (S.sweep >= 0){
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    var sx2 = -120 + (W + 240)*S.sweep, gr = ctx.createLinearGradient(sx2 - 110, 0, sx2 + 110, 0);
+    gr.addColorStop(0, "rgba(255,246,214,0)"); gr.addColorStop(0.5, "rgba(255,246,214,.13)"); gr.addColorStop(1, "rgba(255,246,214,0)");
+    ctx.fillStyle = gr; ctx.fillRect(sx2 - 110, 0, 220, H);
+  }
+  // robots
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (S.fill > 0 && S.fill < 1){
+    Object.keys(groups).forEach(function(g){
+      var rs = groups[g], last = rs[rs.length-1];
+      if (dist > last.d0 + last.len + 6/MPP) return;
+      var px, py, dx, dy;
+      for (var j = 0; j < rs.length; j++){
+        var rj = rs[j], e3 = ends(rj), sx = e3[0][0], sy = e3[0][1], ex = e3[1][0], ey = e3[1][1];
+        if (dist <= rj.d0 + rj.len || j === rs.length - 1){
+          if (dist < rj.d0 && j > 0){
+            var pe = ends(rs[j-1])[1], t = clamp(1 - (rj.d0 - dist)/4, 0, 1);
+            px = pe[0] + (sx - pe[0])*t; py = pe[1] + (sy - pe[1])*t; dx = sx - pe[0]; dy = sy - pe[1];
+          } else { var p = clamp((dist - rj.d0)/rj.len, 0, 1); px = sx + (ex-sx)*p; py = sy + (ey-sy)*p; dx = ex - sx; dy = ey - sy; }
+          break;
+        }
+      }
+      var Ps = toScreen(px, py), ang = Math.atan2(dy, dx) + S.rot;
+      ctx.save(); ctx.translate(Ps[0], Ps[1]); ctx.rotate(ang);
+      ctx.fillStyle = "rgba(243,236,219,.22)"; ctx.beginPath(); ctx.arc(0, 0, 11, 0, 6.2832); ctx.fill();
+      ctx.fillStyle = "#f3ecdb"; ctx.fillRect(-6, -3.5, 12, 7);
+      ctx.fillStyle = "#0b0d0a"; ctx.fillRect(2, -2, 3, 4);
+      ctx.restore();
+    });
+  }
+  // Row 24 label on the map
+  var mp = MEAS ? clamp((dist - MEAS.d0)/MEAS.len, 0, 1) : 0;
+  if (MEAS && mp > 0.3){
+    var A = toScreen(MEAS.a[0], MEAS.a[1]), B = toScreen(MEAS.b[0], MEAS.b[1]), L = A[1] < B[1] ? A : B;
+    ctx.globalAlpha = sstep(0.3, 0.8, mp); ctx.font = "italic 400 14px Literata, Georgia, serif";
+    var txt = "Row 24, one stretch measured", tw = ctx.measureText(txt).width;
+    var lx = clamp(L[0] + 8, 8, W - tw - 18), ly = clamp(L[1] - 10, 90, H - 60);
+    ctx.fillStyle = "rgba(11,13,10,.82)"; ctx.fillRect(lx - 6, ly - 15, tw + 12, 21);
+    ctx.fillStyle = "#f3ecdb"; ctx.fillText(txt, lx, ly);
+    ctx.globalAlpha = 1;
+  }
+}
+function drawPin(){
+  if (S.pin <= 0) return;
+  var P = toScreen(0, 0), t = (performance.now()/1000) % 2;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.globalAlpha = S.pin;
+  ctx.strokeStyle = "#f3ecdb"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(P[0], P[1], 5, 0, 6.2832); ctx.stroke();
+  if (!RM){ ctx.globalAlpha = S.pin * (1 - t/2); ctx.beginPath(); ctx.arc(P[0], P[1], 5 + t*14, 0, 6.2832); ctx.stroke(); }
+  ctx.globalAlpha = S.pin;
+  ctx.beginPath(); ctx.moveTo(P[0]-16, P[1]); ctx.lineTo(P[0]-9, P[1]); ctx.moveTo(P[0]+9, P[1]); ctx.lineTo(P[0]+16, P[1]);
+  ctx.moveTo(P[0], P[1]-16); ctx.lineTo(P[0], P[1]-9); ctx.moveTo(P[0], P[1]+9); ctx.lineTo(P[0], P[1]+16); ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+function drawSpot(){
+  if (!spot || phase === "sv") return;
+  var P = toScreen(spot.pt[0], spot.pt[1]);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.globalAlpha = spot.a; ctx.fillStyle = "#f3ecdb";
+  ctx.beginPath(); ctx.arc(P[0], P[1] - 26, 4, 0, 6.2832); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(P[0] - 6, P[1] - 4); ctx.lineTo(P[0] - 6, P[1] - 15); ctx.quadraticCurveTo(P[0] - 6, P[1] - 20, P[0], P[1] - 20);
+  ctx.quadraticCurveTo(P[0] + 6, P[1] - 20, P[0] + 6, P[1] - 15); ctx.lineTo(P[0] + 6, P[1] - 4); ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = 1;
+}
+var PLACES = [
+  [6.0, 8.7, "Ireland", ""],
+  [9.6, 12.6, "Co. Cork", ""],
+  [15.0, 17.8, "A blueberry farm", "43 rows, 12 varieties"]
+];
+var lastPlace = -1;
+function readouts(){
+    if (phase === "fly"){
+    var best = -1, op = 0;
+    PLACES.forEach(function(pl, i){ var o = Math.min(sstep(pl[0], pl[0] + 0.6, S.s), 1 - sstep(pl[1] - 0.6, pl[1], S.s)); if (o > op){ op = o; best = i; } });
+    if (best !== lastPlace && best >= 0){ $("pn").textContent = PLACES[best][2]; $("ps").textContent = PLACES[best][3]; lastPlace = best; }
+    $("place").style.opacity = op.toFixed(3);
+  } else $("place").style.opacity = 0;
+  if (S.fill > 0){
+    var T = run[0] + run[1] + run[2];
+    $("pb").textContent = fmt(T); $("pbu").textContent = fmt(runN); $("pr").textContent = T ? Math.round(100*run[2]/T) : 0;
+    $("pripe").textContent = fmt(run[2]);
+    $("ykg").textContent = fkg(T); $("ykr").textContent = fkg(run[2]);
+    var bs = $("pbar").children; for (var i = 0; i < 3; i++) bs[i].style.width = (T ? 100*run[2-i]/T : 0) + "%";
+  }
+}
+function frame(){
+  if (!dirty && !(S.pin > 0 && !RM)) return;
+  dirty = false;
+  needLevels();
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = "#0b0d0a"; ctx.fillRect(0, 0, W, H);
+  drawImagery();
+  if (S.fill > 0) drawMarks();
+  drawPin();
+  drawSpot();
+  placeTip();
+  readouts();
+}
+gsap.ticker.add(frame);
+function upd(){ dirty = true; }
+
+/* ---------- the visit ---------- */
+var tl = null;
+function ready(){ window.__tReady = performance.now(); if (!window.__tDrawn) requestAnimationFrame(function(){ window.__tDrawn = performance.now(); });
+  $("go").disabled = false; $("load").textContent = "";
+  var ft = /^#fly=([\d.]+)/.exec(location.hash);   // test view: the descent paused at t seconds
+  if (ft){ fly(); tl.pause(parseFloat(ft[1])); dirty = true; frame(); return; }
+  var sv = /^#sv=(\d+):(\d+)(-anim)?/.exec(location.hash);   // test views: #sv=7:10 (row 7, frame 10), #sv=7:10-anim
+  if (sv){ fly(true); var sp = PH.filter(function(q){ return q.row === +sv[1]; })[0];
+    if (sp){ if (sv[3]) setTimeout(function(){ dropIn(sp, +sv[2]); }, 400); else { var o = RM; RM = true; dropIn(sp, +sv[2]); RM = o; } } return; }
+  if (/^#drag/.test(location.hash)){ fly(true); dirty = true; frame(); return; }
+  if (/^#land/.test(location.hash)){ // test views: #land, #land-row, #land-bush, #land-var, #land+1.5
+    fly(true); var zm = /\+([\d.]+)/.exec(location.hash); if (zm) S.s += parseFloat(zm[1]);
+    if (/var/.test(location.hash)) setView(true);
+    dirty = true; frame(); if (/row/.test(location.hash) && $("meas")) $("meas").click();
+    if (/bush/.test(location.hash)){ var tb = bushes[300], P = toScreen(tb.x, tb.y); showCard({ b: tb, row: tb.row }, P[0], P[1]); pin(true); }
+    return; }
+  farmStart();
+}
+/* open on the farm itself (no descent from Ireland): rows fill in as the robots drive */
+/* openings, chosen by #open=: instant, sweep (default), today, quick (robots, 1.6 s), robots (the old 8 s fill) */
+var OPEN = (/open=(\w+)/.exec(location.hash) || [0, "sweep"])[1], LIT = null;
+function farmStart(mode){
+  mode = mode || OPEN;
+  if (tl) tl.kill(); closeCard();
+  var L = landing();
+  phase = "fly"; touched = false;
+  gsap.set("#intro", { autoAlpha: 0 });
+  gsap.set(S, { s: L.s, rot: L.rot, cx: L.cx, cy: L.cy, yo: 0, fill: 1, dark: 1, pin: 0, sweep: -1 });
+  if (RM || mode === "instant" || mode === "today" || mode === "sweep"){
+    land(); upd();
+    if (mode === "today"){ setToday(true); LIT = PICK.slice(); }
+    if (mode === "sweep" && !RM){ gsap.fromTo(S, { sweep: 0 }, { sweep: 1, duration: 1.1, ease: "power1.inOut", onUpdate: upd, onComplete: function(){ S.sweep = -1; upd(); } }); }
+    return;
+  }
+  S.fill = 0; phase = "fill"; gsap.set("#panel", { autoAlpha: 0, y: 16 });
+  var dur = mode === "robots" ? 8 : 1.6;
+  tl = gsap.timeline({ onUpdate: upd });
+  tl.to("#panel", { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.1)
+    .to(S, { fill: 1, duration: dur, ease: mode === "robots" ? "none" : "power1.inOut" }, 0.1)
+    .add(land);
+}
+function fly(instant){
+  instant = instant === true;
+  if (phase !== "intro") return;
+  phase = "fly"; touched = false; closeCard();
+  var L = landing();
+  if (RM || instant){
+    gsap.set("#intro", { autoAlpha: 0 });
+    gsap.set(S, { s: L.s, rot: L.rot, cx: L.cx, cy: L.cy, fill: 1, dark: 1, pin: 0 });
+    land(); upd(); return;
+  }
+  tl = gsap.timeline({ onUpdate: upd });
+  tl.to("#intro", { autoAlpha: 0, y: -24, duration: 0.7, ease: "power2.in" }, 0)
+    .to(S, { s: L.s - 0.15, duration: 9.4, ease: "sine.inOut" }, 0.2)
+    .to(S, { cx: 0, cy: 0, duration: 3.6, ease: "power2.inOut" }, 0.4)
+    .to(S, { pin: 0, duration: 0.8 }, 7.4)
+    .to(S, { cx: L.cx, cy: L.cy, duration: 3.4, ease: "power2.inOut" }, 6.4)
+    .to(S, { s: L.s, dark: 1, duration: 1.4, ease: "power1.out" }, 9.6)
+    .add(function(){ phase = "fill"; gsap.set("#panel", { autoAlpha: 0, y: 16 }); }, 9.8)
+    .to("#panel", { autoAlpha: 1, y: 0, duration: 0.7, ease: "power2.out" }, 9.9)
+    .to(S, { fill: 1, duration: 8, ease: "none" }, 10.0)
+    .add(land);
+}
+function land(){
+  phase = "landed";
+  gsap.set("#panel", { autoAlpha: 1, y: 0 });
+  gsap.to(["#ctrl", "#today", "#nav", "#wip"], { autoAlpha: 1, duration: RM ? 0 : 0.5 });
+  if (W <= 640 && !land.done) setToday(false);
+  land.done = true;
+  S.fill = 1; dirty = true; frame();
+}
+function replay(){ farmStart(); }
+function replayDescent(){
+  if (tl) tl.kill(); closeCard();
+  gsap.set(S, { s: startS(), rot: 0, cx: M.start[0], cy: M.start[1], yo: 0, fill: 0, dark: 0, pin: 1 });
+  gsap.set(["#panel", "#ctrl"], { autoAlpha: 0 });
+  gsap.set("#intro", { autoAlpha: 1, y: 0 });
+  phase = "intro"; upd();
+  if (!RM) setTimeout(function(){ fly(); }, 600);
+}
+function setView(v){
+  vmode = v; $("vv").classList.toggle("on", v); $("vr").classList.toggle("on", !v);
+  document.body.classList.toggle("vmode", v); upd();
+}
+$("vr").addEventListener("click", function(){ setView(false); });
+$("vv").addEventListener("click", function(){ setView(true); });
+$("go").addEventListener("click", function(){ fly(); });
+$("replay").addEventListener("click", replay);
+window.addEventListener("keydown", function(e){
+  if (phase === "intro" && !$("go").disabled && (e.key === " " || e.key === "ArrowDown" || e.key === "Enter")) { e.preventDefault(); fly(); }
+  if (e.key === "Escape"){ if (phase === "sv") exitSV(); else { closeCard(); closeTip(); } }
+});
+
+/* ---------- interaction ---------- */
+var ptrs = {}, dragStart = null, moved = false, pinchD = 0;
+function zoomAt(px, py, ds, dur){
+  var w0 = toWorld(px, py), lo = landing().s - 1.2, s1 = clamp(S.s + ds, lo, 22.5), tmp = { s: S.s };
+  gsap.to(tmp, { s: s1, duration: RM ? 0 : (dur || 0), ease: "power2.out", onUpdate: function(){
+    S.s = tmp.s; var w1 = toWorld(px, py); S.cx += w0[0] - w1[0]; S.cy += w0[1] - w1[1]; upd(); } });
+  touched = true;
+}
+cv.addEventListener("wheel", function(e){
+  e.preventDefault();
+  if (phase === "intro"){ if (!$("go").disabled) fly(); return; }
+  if (phase !== "landed") return;
+  zoomAt(e.clientX, e.clientY, -e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.0022), 0);
+}, { passive: false });
+cv.addEventListener("pointerdown", function(e){
+  if (LIT){ LIT = null; upd(); }
+  if (phase === "intro"){ if (!$("go").disabled) fly(); return; }
+  ptrs[e.pointerId] = [e.clientX, e.clientY];
+  try { cv.setPointerCapture(e.pointerId); } catch (er) {}
+  dragStart = [e.clientX, e.clientY]; moved = false;
+  var ids = Object.keys(ptrs); if (ids.length === 2){ var a = ptrs[ids[0]], b = ptrs[ids[1]]; pinchD = Math.hypot(a[0]-b[0], a[1]-b[1]); }
+});
+cv.addEventListener("pointermove", function(e){
+  if (phase === "landed" && ptrs[e.pointerId]){
+    var prev = ptrs[e.pointerId], ids = Object.keys(ptrs);
+    ptrs[e.pointerId] = [e.clientX, e.clientY];
+    if (Math.hypot(e.clientX - dragStart[0], e.clientY - dragStart[1]) > 5) moved = true;
+    if (ids.length === 2){
+      var a = ptrs[ids[0]], b = ptrs[ids[1]], d = Math.hypot(a[0]-b[0], a[1]-b[1]);
+      if (pinchD > 0) zoomAt((a[0]+b[0])/2, (a[1]+b[1])/2, Math.log2(d/pinchD), 0);
+      pinchD = d; return;
+    }
+    if (moved){
+      cv.classList.add("drag");
+      var w0 = toWorld(prev[0], prev[1]), w1 = toWorld(e.clientX, e.clientY);
+      S.cx += w0[0] - w1[0]; S.cy += w0[1] - w1[1]; touched = true; upd();
+      if (!pinned) closeCard();
+    }
+    return;
+  }
+  if (VIEW !== "map" && phase === "landed"){
+    if (e.pointerType === "mouse"){ var vr = nearestRow(e.clientX, e.clientY); if (vr) ttShow(viewRowTip(vr), e.clientX, e.clientY); else if (!ttPinned) ttHide(); cv.style.cursor = vr ? "pointer" : ""; }
+    return;
+  }
+  if (e.pointerType === "mouse" && !pinned && (phase === "landed" || phase === "fill")){
+    var nt = hitNote(e.clientX, e.clientY);
+    if (nt){ if (!hover || hover.note !== nt){ closeCard(); hover = { note: nt }; upd(); } cv.style.cursor = "pointer";
+      tgt.innerHTML = nt.html; tgt.className = "on note";
+      tgt.style.transform = "translate(" + clamp(e.clientX + 16, 8, W - 300) + "px," + (e.clientY + 18) + "px)"; return; }
+    if (!drag.on) tgt.className = "";
+    var h = hit(e.clientX, e.clientY);
+    cv.style.cursor = h && ROWS[h.row].ph ? "pointer" : "";
+    if (h){ showCard(h, e.clientX, e.clientY); } else if (hover){ closeCard(); }
+  }
+});
+function up(e){
+  delete ptrs[e.pointerId]; cv.classList.remove("drag");
+  if (phase === "landed" && !moved && Object.keys(ptrs).length === 0 && VIEW !== "map"){
+    var vr2 = nearestRow(e.clientX, e.clientY);
+    if (vr2){ ttShow(viewRowTip(vr2), e.clientX, e.clientY); ttPinned = true; } else ttHide();
+    if (Object.keys(ptrs).length < 2) pinchD = 0;
+    return;
+  }
+  if (phase === "landed" && !moved && Object.keys(ptrs).length === 0){
+    var nh = hitNote(e.clientX, e.clientY);
+    if (nh){ if (nh.kind === "weeds") dropIn(nh.look.p, nh.look.k); else pinTip(nh); return; }
+    closeTip();
+    var pr = hitPhotoRow(e.clientX, e.clientY);
+    if (pr){ dropIn(pr.p, nearK(pr.p, pr.t)); return; }
+    var h = hit(e.clientX, e.clientY);
+    if (h){ showCard(h, e.clientX, e.clientY); pin(true); } else closeCard();
+  }
+  if (Object.keys(ptrs).length < 2) pinchD = 0;
+}
+cv.addEventListener("pointerup", up);
+cv.addEventListener("pointercancel", up);
+cv.addEventListener("pointerleave", function(e){ if (e.pointerType === "mouse" && !drag.on) tgt.className = ""; if (e.pointerType === "mouse" && !pinned && hover) closeCard(); });
+$("zin").addEventListener("click", function(){ zoomAt(W/2, H/2, 0.8, 0.45); });
+$("zout").addEventListener("click", function(){ zoomAt(W/2, H/2, -0.8, 0.45); });
+if ($("meas")) $("meas").addEventListener("click", function(){
+  if (phase !== "landed") return;
+  var mid = MEAS.list[Math.floor(MEAS.list.length/2)], P = toScreen(mid.x, mid.y);
+  showCard({ b: mid, row: mid.row }, P[0], P[1]); pin(true);
+});
+$("cx").addEventListener("click", closeCard);
+
+function hitNote(px, py){
+  if (S.fill < 1) return null;
+  var best = null, bd = 13;
+  NOTES.forEach(function(n){
+    var P = toScreen(n.x, n.y), d = Math.hypot(P[0]-px, P[1]-py);
+    if (n.kind === "weeds"){ var a = toScreen(n.seg[0][0], n.seg[0][1]), b = toScreen(n.seg[1][0], n.seg[1][1]), vx = b[0]-a[0], vy = b[1]-a[1],
+      tt = clamp(((px-a[0])*vx + (py-a[1])*vy)/Math.max(vx*vx + vy*vy, 1), 0, 1); d = Math.hypot(a[0] + vx*tt - px, a[1] + vy*tt - py); }
+    if (n.kind === "uneven"){ var r = n.r, w = toWorld(px, py), u = rowUnit(r), o = 1.5/MPP, t = clamp(((w[0]-r.a[0])*u[0] + (w[1]-r.a[1])*u[1])/(r.len/MPP), 0, 1);
+      var q = toScreen(r.a[0] + u[0]*t*r.len/MPP - u[1]*o, r.a[1] + u[1]*t*r.len/MPP + u[0]*o); d = Math.hypot(q[0]-px, q[1]-py) + 4; }
+    if (d < bd){ bd = d; best = n; }
+  });
+  return best;
+}
+/* nearest row with photos within lim screen px: {p, t} */
+function hitPhotoRow(px, py, lim){
+  var best = null, bd = lim || Math.max(10, SP*K()*0.9);
+  PH.forEach(function(p){
+    var r = ROWS[p.ri], w = toWorld(px, py), t = rowT(r, w[0], w[1]), q = rowPt(r, t), Q = toScreen(q[0], q[1]), d = Math.hypot(Q[0]-px, Q[1]-py);
+    if (d < bd){ bd = d; best = { p: p, t: t }; }
+  });
+  return best;
+}
+function hit(px, py){
+  var w = toWorld(px, py), k = K(), best = null, bd = Math.max(12, SP*k*0.9) / k, bd2 = bd*bd;
+  var dist = S.fill * (DMAX + 8);
+  for (var i = 0; i < bushes.length; i++){
+    var b = bushes[i]; if (b.d > dist) continue;
+    var dx = b.x - w[0], dy = b.y - w[1], d2 = dx*dx + dy*dy;
+    if (d2 < bd2){ bd2 = d2; best = b; }
+  }
+  if (best) return { b: best, row: best.row };
+  // aronia and gooseberry rows: nearest line
+  var lim = 8/k, bestR = -1;
+  ROWS.forEach(function(r, ri){
+    if (r.kind === "blueberry" || r.d0 > dist) return;
+    var ax = r.a[0], ay = r.a[1], vx = r.b[0]-ax, vy = r.b[1]-ay, t = clamp(((w[0]-ax)*vx + (w[1]-ay)*vy)/(vx*vx+vy*vy), 0, 1);
+    var d = Math.hypot(ax + vx*t - w[0], ay + vy*t - w[1]); if (d < lim){ lim = d; bestR = ri; }
+  });
+  return bestR >= 0 ? { row: bestR } : null;
+}
+
+/* ---------- card ---------- */
+var card = $("card"), cycle = null;
+function photo(src, cap){ $("cfig").style.display = ""; $("cimg").src = "media/photos/row24_" + src + ".webp"; $("ccap").textContent = cap; }
+function varietyText(r){
+  if (r.kind !== "blueberry") return r.kind === "aronia" ? "Aronia, not blueberry" : "Gooseberry, not blueberry";
+  var v = r.variety.split(" / ");
+  var s = v.length > 1 ? v.slice(0, -1).join(", ") + " and " + v[v.length-1] + " <i>along the row</i>" : r.variety;
+  return s + (r.note ? " <i>(" + r.note + ")</i>" : "");
+}
+function showCard(h, px, py){
+  var same = hover && hover.row === h.row && hover.b === h.b;
+  hover = h; upd();
+  var b = h.b, r = ROWS[h.row];
+  if (!same){
+    clearInterval(cycle);
+    var th = $("cth"); th.innerHTML = ""; th.style.display = "none";
+    $("cvar").innerHTML = varietyText(r);
+    if (!b){
+      $("cfig").style.display = "none";
+      $("cid").textContent = r.label; $("ctag").className = "tag"; $("ctag").textContent = "";
+      $("ctot").textContent = ""; $("clab").textContent = "No berry counts on this row.";
+      $("csplit").style.display = "none"; $("crow").innerHTML = "Zone: " + r.zone + ".";
+    } else if (r.measured){
+      $("cid").textContent = "Row 24"; $("ctag").className = "tag pre"; $("ctag").textContent = "measured, preliminary";
+      $("ctot").textContent = "522";
+      $("clab").innerHTML = "berries in the 3D model of one measured stretch of this row, July 2026. <b class='num'>574</b> berries counted in the video of that stretch. Both preliminary.";
+      $("csplit").style.display = "none";
+      PH_MEAS.forEach(function(p, i){
+        var bt = document.createElement("button"); bt.innerHTML = '<img alt="" src="media/photos/row24_' + p + '.webp">';
+        bt.addEventListener("click", function(){ sel(i); clearInterval(cycle); }); th.appendChild(bt);
+      });
+      var cur = 0, sel = function(i){ cur = i; photo(PH_MEAS[i], "Real photo from Row 24, July 2026");
+        Array.prototype.forEach.call(th.children, function(x, j){ x.className = j === i ? "on" : ""; }); };
+      sel(0); th.style.display = "flex";
+      if (!RM) cycle = setInterval(function(){ sel((cur + 1) % PH_MEAS.length); }, 2400);
+      $("crow").innerHTML = "The stretch is not marked bush by bush. Which traced row is Row 24 is our best match to the farm's row sheet.";
+    } else {
+      $("cid").textContent = r.label + ", bush " + (b.k + 1);
+      $("ctag").className = "tag"; $("ctag").textContent = "";
+      $("ctot").textContent = fmt(b.c[2]); $("clab").innerHTML = "berries ripe now, of <b class='num'>" + fmt(b.t) + "</b> berries on this bush. About <b class='num'>" + fkg(b.t) + "</b> kg, <b class='num'>" + fkg(b.c[2]) + "</b> kg ripe now.";
+      $("csplit").style.display = "";
+      $("c0").textContent = fmt(b.c[0]); $("c1").textContent = fmt(b.c[1]); $("c2").textContent = fmt(b.c[2]);
+      if (r.ph){ var pk = nearK(r.ph, rowT(r, b.x, b.y)); $("cfig").style.display = ""; $("cimg").src = frameSrc(r.ph, pk);
+        $("ccap").textContent = "Photo from this row, " + r.ph.date + ". Click or tap to walk the row."; }
+      else photo(b.ph, "A photo from Row 24 on this farm, not this bush");
+      var BK = BLOCKS[r.g];
+      $("crow").innerHTML = r.label + ": <b>" + Math.round(100*r.cnt[2]/Math.max(r.tot,1)) + "</b>% ripe now, <b>" + fkg(r.cnt[2]) +
+        "</b> kg to pick now of <b>" + fkg(r.tot) + "</b> kg on <b>" + fmt(r.n) + "</b> bushes.<br>Block of rows <b>" + BK.lo + "</b> to <b>" + BK.hi + "</b>: <b>" +
+        fkg(BK.r2) + "</b> kg to pick now of <b>" + fkg(BK.t) + "</b> kg.";
+    }
+  }
+  if (W > 640){
+    var cw = 300, ch = card.offsetHeight || 420;
+    var x = px + 22, y = py - ch/2;
+    if (x + cw > W - 12) x = px - cw - 22;
+    card.style.left = clamp(x, 12, W - cw - 12) + "px"; card.style.top = clamp(y, 64, H - ch - 40) + "px";
+  }
+  card.classList.add("on"); document.body.classList.add("carded");
+}
+function pin(on){ pinned = on; card.classList.toggle("pinned", on); }
+function closeCard(){
+  hover = null; pin(false); clearInterval(cycle);
+  card.classList.remove("on"); document.body.classList.remove("carded"); upd();
+}
+
+/* ---------- panel: rows with photos ---------- */
+$("nrows").textContent = PH.length;
+
+/* today on the farm: the list, fly-to and the pinned note */
+var tipNote = null, tip = $("tip");
+function noteBtn(n, label){ var b = document.createElement("button"); b.innerHTML = label; b.addEventListener("click", function(){ goNote(n); }); return b; }
+function item(head, sub){ var d = document.createElement("div"); d.className = "it";
+  var h = document.createElement("div"); h.className = "ih"; head(h); d.appendChild(h);
+  if (sub){ var q = document.createElement("div"); q.className = "is"; q.innerHTML = sub; d.appendChild(q); }
+  $("tdb").appendChild(d); return d; }
+item(function(h){ h.appendChild(document.createTextNode("Pick today: rows "));
+  NOTES.filter(function(n){ return n.kind === "pick"; }).forEach(function(n, i, A){
+    h.appendChild(noteBtn(n, "<b>" + n.r.num + "</b>")); if (i < A.length - 1) h.appendChild(document.createTextNode(i === A.length - 2 ? " and " : ", ")); });
+}, "Most ripe fruit now, by weight.");
+if (FLAGS.length || WROWS.length){
+  var fd = item(function(h){ h.innerHTML = "Weeds in the row, check <span class='tg2 kp'>from the photos</span>"; },
+    "Grass around the bushes along most of " + (WROWS.length + FLAGS.length === 1 ? "this row" : "these rows") + ". Found automatically in the row photos.");
+  var il = document.createElement("div"); il.className = "il"; fd.appendChild(il);
+  WROWS.forEach(function(p){ il.appendChild(noteBtn(p.wnote, "Row <b>" + p.row + "</b>")); });
+  FLAGS.forEach(function(F){ il.appendChild(noteBtn(F.note, "Row <b>" + F.p.row + "</b>, " + mRange(F))); });
+}
+if (UNEV) item(function(h){ h.appendChild(noteBtn(UNEV.note, "Uneven ripening in row <b>" + UNEV.r.num + "</b>")); },
+  "Ripe share far from other rows of the same variety.");
+item(function(h){ h.appendChild(document.createTextNode("Possible disease at rows "));
+  DIS.forEach(function(n, i){ h.appendChild(noteBtn(n, "<b>" + n.r.num + "</b>")); if (i < DIS.length - 1) h.appendChild(document.createTextNode(" and ")); });
+}, "Check the leaves and fruit of these bushes.");
+function setToday(open){ $("tdh").setAttribute("aria-expanded", open); $("tdb").hidden = !open; document.body.classList.toggle("tdopen", open && W <= 640); }
+$("tdh").addEventListener("click", function(){ setToday($("tdb").hidden); });
+function flyTo(x, y, dz, then){
+  if (tl) tl.progress(1);
+  var L = landing(), s1 = Math.max(S.s, L.s + dz);
+  var mob = W <= 640, ox = mob ? 0 : 0, oy = mob ? -H*0.12 : 0;   // keep the spot clear of the panels
+  touched = true;
+  gsap.to(S, { cx: x - ox/Math.pow(2, s1 - 18), cy: y - oy/Math.pow(2, s1 - 18), s: s1, rot: 0, duration: RM ? 0 : 1.2, ease: "power2.inOut", onUpdate: upd, onComplete: then });
+}
+function goNote(n){
+  if (phase !== "landed" && phase !== "fill") return;
+  closeCard(); closeTip(); tgt.className = "";
+  if (W <= 640) setToday(false);
+  flyTo(n.x, n.y, n.zoom, function(){ pinTip(n); });
+}
+function pinTip(n){
+  tipNote = n; var look = n.look || (n.r.ph ? { p: n.r.ph, k: nearK(n.r.ph, rowT(n.r, n.x, n.y)) } : null);
+  tip.innerHTML = n.html + (look ? "<button class='lk' id='tlook'>Look</button>" : "") + "<button class='lk' id='tclose'>Close</button>";
+  if (look) $("tlook").addEventListener("click", function(){ closeTip(); dropIn(look.p, look.k); });
+  $("tclose").addEventListener("click", closeTip);
+  tip.classList.add("on"); placeTip(); upd();
+}
+function closeTip(){ if (!tipNote) return; tipNote = null; tip.classList.remove("on"); upd(); }
+function placeTip(){
+  if (!tipNote) return;
+  var P = toScreen(tipNote.x, tipNote.y), w = tip.offsetWidth, h = tip.offsetHeight;
+  var x = clamp(P[0] + 16, 12, W - w - 12), y = P[1] + 18; if (y + h > H - 40) y = P[1] - h - 18;
+  tip.style.transform = "translate(" + x + "px," + clamp(y, 60, H - h - 12) + "px)";
+}
+
+/* ---------- shared helpers for the views ---------- */
+var SEA = M.season, VIEW = "map", HL = null;          // HL: rows lit on the map by the current view
+var MON = ["Jan","Feb","Mar","Apr","May","June","July","Aug","Sept","Oct","Nov","Dec"];
+function dayDate(doy){ var d = new Date(Date.UTC(SEA.year, 0, 1) + (doy - 1)*864e5); return d.getUTCDate() + " " + MON[d.getUTCMonth()]; }
+function listNums(a, bold){ var t = a.map(function(n){ return bold ? "<b>" + n + "</b>" : n; }); return t.length < 2 ? t.join("") : t.slice(0, -1).join(", ") + " and " + t[t.length - 1]; }
+function uniq(a){ return a.filter(function(x, i){ return a.indexOf(x) === i; }); }
+function el(tag, cls, html){ var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function median(a){ var b = a.slice().sort(function(x, y){ return x - y; }), n = b.length; return n ? (n % 2 ? b[(n-1)/2] : (b[n/2-1] + b[n/2])/2) : 0; }
+function quant(a, q){ var b = a.slice().sort(function(x, y){ return x - y; }); return b.length ? b[Math.min(b.length - 1, Math.floor(q*(b.length - 1) + 0.5))] : 0; }
+
+/* immediate tooltip: anything with data-tt, plus map rows in the Plan view; follows the pointer, tap on phones */
+var tt = $("tt"), ttPinned = false;
+function ttShow(html, x, y){ tt.innerHTML = html; tt.classList.add("on"); ttMove(x, y); }
+function ttMove(x, y){ var w = tt.offsetWidth, h = tt.offsetHeight, X = x + 16, Y = y + 18;
+  if (X + w > W - 8) X = x - w - 16; if (Y + h > H - 8) Y = y - h - 14; tt.style.transform = "translate(" + Math.max(8, X) + "px," + Math.max(8, Y) + "px)"; }
+function ttHide(){ tt.classList.remove("on"); ttPinned = false; }
+document.addEventListener("pointermove", function(e){
+  if (e.pointerType !== "mouse") return;
+  var t = e.target.closest && e.target.closest("[data-tt]");
+  if (t){ ttShow(t.getAttribute("data-tt"), e.clientX, e.clientY); return; }
+  if (e.target !== cv && tt.classList.contains("on") && !ttPinned) ttHide();
+});
+document.addEventListener("pointerdown", function(e){
+  var t = e.target.closest && e.target.closest("[data-tt]");
+  if (e.pointerType !== "mouse" && t){ ttShow(t.getAttribute("data-tt"), e.clientX, e.clientY); ttPinned = true; return; }
+  if (ttPinned && !t) ttHide();
+}, true);
+
+/* light rows on the map and frame them, keeping clear of the sheet */
+function lightRows(rs, fly){
+  HL = rs && rs.length ? rs : null; upd();
+  if (!HL || !fly) return;
+  var x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+  HL.forEach(function(r){ [r.a, r.b].forEach(function(p){ x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }); });
+  var mob = W <= 640, L = landing(), sheetW = mob ? 0 : Math.min(660, W - 380) + 20;
+  var ext = Math.max(x1 - x0, y1 - y0, 60), s1 = clamp(18 + Math.log2(Math.min(W - sheetW - 60, H - 160)/ext), L.s - 0.6, L.s + 2), kk = Math.pow(2, s1 - 18);
+  touched = true;
+  gsap.to(S, { cx: (x0 + x1)/2 - (sheetW/2)/kk, cy: (y0 + y1)/2, s: s1, rot: 0, duration: RM ? 0 : 0.9, ease: "power2.inOut", onUpdate: upd });
+}
+// on phones a sheet steps aside so the lit rows can be seen, with a bar to come back
+function mapBack(label){
+  if (W > 640) return;
+  gsap.to(".sheet.cur", { autoAlpha: 0, duration: RM ? 0 : 0.2 });
+  document.body.classList.add("mapback");
+  $("pbt").innerHTML = label; $("pbb").textContent = "Back to " + ({ plan: "the plan", issues: "issues", yield: "yield" })[VIEW]; $("pbar2").classList.add("on");
+}
+$("pbb").addEventListener("click", function(){ $("pbar2").classList.remove("on"); document.body.classList.remove("mapback"); gsap.to(".sheet.cur", { autoAlpha: 1, duration: RM ? 0 : 0.2 }); });
+
+/* per-bush variety (mixed rows split along the row), totals, and each row part's place in its season */
+function win(v){ var c = SEA.classes[v] || [2, 35], s = SEA.anchor + SEA.step*c[0]; return { s: s, L: c[1], mu: s + 0.42*c[1], sd: c[1]/4.5 }; }
+function Fn(t, mu, sd){ var z = (t - mu)/(sd*Math.SQRT2), a = Math.abs(z), q = 1/(1 + 0.3275911*a);
+  var y = 1 - (((((1.061405429*q - 1.453152027)*q) + 1.421413741)*q - 0.284496736)*q + 0.254829592)*q*Math.exp(-a*a);
+  return 0.5*(1 + (z < 0 ? -y : y)); }
+function probit(p){
+  var a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.357751867269, -30.66479806614716, 2.506628277459239],
+      b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771720, -13.28068155288572],
+      c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783],
+      d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416], q, r;
+  if (p < 0.02425){ q = Math.sqrt(-2*Math.log(p)); return (((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5])/((((d[0]*q + d[1])*q + d[2])*q + d[3])*q + 1); }
+  if (p > 0.97575){ q = Math.sqrt(-2*Math.log(1 - p)); return -(((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5])/((((d[0]*q + d[1])*q + d[2])*q + d[3])*q + 1); }
+  q = p - 0.5; r = q*q; return (((((a[0]*r + a[1])*r + a[2])*r + a[3])*r + a[4])*r + a[5])*q/(((((b[0]*r + b[1])*r + b[2])*r + b[3])*r + b[4])*r + 1); }
+function vname(v){ return v === "New Top Shelf" ? "Top Shelf" : v; }
+var PARTS = [];   // {r, v, bushes:[bush totals], tot, ripe, mu, sd}
+BR.forEach(function(r){
+  var parts = r.variety.split(" / "), n = r.c.length;
+  parts.forEach(function(v, pi){
+    var k0 = Math.floor(pi*n/parts.length), k1 = Math.floor((pi + 1)*n/parts.length), P = { r: r, v: vname(v), raw: v, bushes: [], tot: 0, ripe: 0 };
+    for (var k = k0; k < k1; k++){ var t = r.c[k][0] + r.c[k][1] + r.c[k][2]; P.bushes.push(t); P.tot += t; P.ripe += r.c[k][2]; }
+    var W0 = win(v), q = P.ripe/Math.max(P.tot, 1);
+    P.mu = (q > 0.03 && q < 0.97) ? SEA.date - W0.sd*probit(q) : W0.mu + (r.sh || 0); P.sd = W0.sd;
+    PARTS.push(P);
+  });
+});
+var VARS = uniq(PARTS.map(function(P){ return P.v; })).sort(function(a, b){ return SEA.classes[a][0] - SEA.classes[b][0] || a.localeCompare(b); });
+
+/* ---------- Plan ---------- */
+var NW = 8, D0 = SEA.date, PLAN = null, PS = { w: null, v: null };
+function buildPlan(){
+  var week = []; for (var w = 0; w < NW; w++) week.push({ kg: 0, byV: {}, rowsV: {}, i: w });
+  PARTS.forEach(function(P){
+    P.wk = [];
+    for (var w = 0; w < NW; w++){
+      var a = w === 0 ? -1e9 : D0 + 7*w, b = D0 + 7*(w + 1), share = Fn(b, P.mu, P.sd) - Fn(a, P.mu, P.sd), g = kg(P.tot*share);
+      P.wk.push(g); week[w].kg += g; week[w].byV[P.v] = (week[w].byV[P.v] || 0) + g;
+      if (share >= 0.15 && g >= 1) (week[w].rowsV[P.v] = week[w].rowsV[P.v] || []).push(P.r);
+    }
+  });
+  var max = Math.max.apply(null, week.map(function(x){ return x.kg; }));
+  week.forEach(function(x){ x.peak = x.kg >= 0.8*max; x.light = x.kg < 0.45*max;
+    Object.keys(x.rowsV).forEach(function(v){ x.rowsV[v] = uniq(x.rowsV[v]).sort(function(a, b){ return a.num - b.num; }); }); });
+  var pct = function(doy){ return clamp((doy - D0)/(NW*7), 0, 1)*100; };
+  // lanes
+  var grid = ""; for (var g = 0; g <= NW; g++) grid += '<div class="gr" style="left:' + (100*g/NW) + '%"></div>';
+  var tlEl = $("tl"); tlEl.innerHTML = "";
+  var hd = '<div class="hd"><span></span><div>'; for (var h = 0; h < NW; h += 2) hd += '<em style="left:' + (100*h/NW) + '%">' + dayDate(D0 + 7*h) + "</em>"; tlEl.innerHTML = hd + "</div></div>";
+  VARS.forEach(function(v){
+    var W0 = win(v), a = pct(W0.s), b = pct(W0.s + W0.L), m0 = W0.mu - 0.674*W0.sd, m1 = W0.mu + 0.674*W0.sd;
+    var ps = PARTS.filter(function(P){ return P.v === v; }), tot = ps.reduce(function(s2, P){ return s2 + P.tot; }, 0);
+    var whole = uniq(ps.filter(function(P){ return P.r.variety.indexOf(" / ") < 0; }).map(function(P){ return P.r.num; })).sort(function(x, y){ return x - y; });
+    var part = uniq(ps.filter(function(P){ return P.r.variety.indexOf(" / ") >= 0; }).map(function(P){ return P.r.num; })).sort(function(x, y){ return x - y; });
+    var tip = "<b>" + v + "</b>: picking about " + dayDate(Math.round(W0.s)) + " to " + dayDate(Math.round(W0.s + W0.L)) +
+      "<small>Middle half of the berries " + dayDate(Math.round(m0)) + " to " + dayDate(Math.round(m1)) + ".</small>" +
+      "<span class='tl2'>" + (whole.length ? (whole.length > 1 ? "Rows " : "Row ") + listNums(whole, true) : "") + (part.length ? (whole.length ? ", and part of " : "Part of ") + (part.length > 1 ? "rows " : "row ") + listNums(part, true) : "") + "</span>" +
+      "<span class='tl2'><b>" + fmt(kg(tot)) + "</b> kg in all</span>";
+    var ln = el("div", "ln"); ln.setAttribute("data-v", v); ln.setAttribute("data-tt", tip);
+    var inner = b > a ? '<b style="left:' + ((pct(m0) - a)/(b - a)*100) + '%;width:' + ((pct(m1) - pct(m0))/(b - a)*100) + '%"></b>' : "";
+    ln.innerHTML = "<span>" + v + '</span><div class="tr">' + grid + (b > a ? '<i style="left:' + a + '%;width:' + (b - a) + '%">' + inner + "</i>" : "") + "</div>";
+    ln.addEventListener("click", function(){ planSelect(PS.v === v && PS.w === null ? { w: null, v: null } : { w: null, v: v }); });
+    tlEl.appendChild(ln);
+  });
+  // weekly bars
+  var wb = $("wkb"); wb.innerHTML = ""; var bars = el("div", "bars"); bars.appendChild(el("span")); var bt = el("div", "bt"); bars.appendChild(bt); wb.appendChild(bars);
+  week.forEach(function(x, w){
+    var keys = VARS.filter(function(v){ return (x.byV[v] || 0) >= 1; });
+    var tip = "Week of " + dayDate(D0 + 7*w) + ": <b>" + fmt(x.kg) + "</b> kg" + (x.peak ? ", peak picking" : x.light ? ", a lighter week" : "") +
+      keys.map(function(v){ return "<span class='tl2'>" + v + " <b>" + fmt(x.byV[v]) + "</b> kg" + (x.rowsV[v] ? ": " + (x.rowsV[v].length > 1 ? "rows " : "row ") + listNums(x.rowsV[v].map(function(r){ return r.num; })) : "") + "</span>"; }).join("");
+    var d = el("div"); d.style.left = (100*w/NW) + "%"; d.style.width = (100/NW) + "%"; d.setAttribute("data-w", w); d.setAttribute("data-tt", tip);
+    d.innerHTML = "<b>" + fmt(x.kg) + '</b><i class="' + (x.peak ? "pk" : x.light ? "lt" : "") + '" style="height:' + Math.max(2, 78*x.kg/max) + 'px"><u></u></i><small class="' + (w % 2 ? "odd" : "") + '">' + dayDate(D0 + 7*w) + "</small>";
+    d.addEventListener("click", function(){ planSelect(PS.w === w && PS.v === null ? { w: null, v: null } : { w: w, v: null }); });
+    bt.appendChild(d);
+  });
+  wb.appendChild(el("div", "key", "Bright: peak picking. Pale: lighter week."));
+  // week by week
+  var todo = [];
+  if (WROWS.length) todo.push("Weed rows " + listNums(WROWS.map(function(p){ return p.row; })) + ": grass around the bushes, from the photos.");
+  todo.push("Mow between the rows.");
+  if (DIS.length) todo.push("Check the bushes in the disease alerts (rows " + listNums(DIS.map(function(n){ return n.r.num; })) + ").");
+  todo.push("Walk and photograph rows that have no photos yet.");
+  var wl = $("wl"); wl.innerHTML = ""; var ti = 0;
+  week.forEach(function(x, w){
+    var d = el("div", "wk"); d.setAttribute("data-w", w);
+    var hh = el("div", "wkh", '<span class="wn">Week of ' + dayDate(D0 + 7*w) + '</span> <span><b>' + fmt(x.kg) + "</b> kg</span>" +
+      (x.peak ? "<span class='tg2 pk'>peak picking</span>" : x.light ? "<span class='tg2 lt'>lighter week</span>" : ""));
+    hh.addEventListener("click", function(){ planSelect(PS.w === w && PS.v === null ? { w: null, v: null } : { w: w, v: null }); });
+    d.appendChild(hh);
+    var rr = el("div", "wkr"), keys = VARS.filter(function(v){ return x.rowsV[v]; });
+    if (!keys.length) rr.appendChild(el("div", "", "Little to pick."));
+    keys.forEach(function(v){
+      var rs = x.rowsV[v], b2 = el("button", "", v + ": " + (rs.length > 1 ? "rows " : "row ") + listNums(rs.map(function(r){ return r.num; }), true) + " <span style='color:var(--mute)'>(<b>" + fmt(x.byV[v]) + "</b> kg)</span>");
+      b2.setAttribute("data-v", v);
+      b2.addEventListener("click", function(){ planSelect({ w: w, v: v }); });
+      rr.appendChild(b2);
+    });
+    d.appendChild(rr);
+    if (x.light){ d.appendChild(el("div", "wko", "Lighter week: time for other work.<ul><li>" + todo[ti % todo.length] + "</li><li>" + todo[(ti + 1) % todo.length] + "</li></ul>")); ti += 2; }
+    wl.appendChild(d);
+  });
+  PLAN = week;
+}
+function planRows(sel){
+  if (sel.w !== null && sel.v) return PLAN[sel.w].rowsV[sel.v] || [];
+  if (sel.w !== null){ var a = []; Object.keys(PLAN[sel.w].rowsV).forEach(function(v){ a = a.concat(PLAN[sel.w].rowsV[v]); }); return uniq(a); }
+  if (sel.v) return uniq(PARTS.filter(function(P){ return P.v === sel.v; }).map(function(P){ return P.r; }));
+  return [];
+}
+function planSelect(sel, noScroll){
+  PS = sel; var w = sel.w, v = sel.v, any = w !== null || v;
+  var weekVars = w !== null ? VARS.filter(function(x){ return PLAN[w].rowsV[x]; }) : null;
+  Array.prototype.forEach.call(document.querySelectorAll("#tl .ln"), function(ln){ var lv = ln.getAttribute("data-v");
+    ln.classList.toggle("on", !!any && (lv === v || (w !== null && !v && weekVars.indexOf(lv) >= 0)));
+    ln.classList.toggle("dim", !!any && !(lv === v || (w !== null && !v && weekVars.indexOf(lv) >= 0))); });
+  // the week band over the lanes
+  var band = $("wband"), tlr = $("tl").querySelector(".ln .tr");
+  if (w !== null && tlr){ var R = tlr.getBoundingClientRect(), P0 = $("tl").getBoundingClientRect(); band.style.display = "block";
+    band.style.left = (R.left - P0.left + R.width*w/NW) + "px"; band.style.width = (R.width/NW) + "px"; } else band.style.display = "none";
+  // bars: the selected variety's share inside each bar; the selected week outlined
+  var max = Math.max.apply(null, PLAN.map(function(x){ return x.kg; }));
+  $("wkb").classList.toggle("vsel", !!v);
+  Array.prototype.forEach.call(document.querySelectorAll("#wkb .bt>div"), function(d){ var i = +d.getAttribute("data-w"), x = PLAN[i];
+    d.classList.toggle("on", w === i); d.classList.toggle("dim", !!v && !((x.byV[v] || 0) >= 1));
+    var u = d.querySelector("u"); if (u) u.style.height = v ? Math.min(100, 100*(x.byV[v] || 0)/Math.max(x.kg, 1e-9)) + "%" : "0"; });
+  Array.prototype.forEach.call(document.querySelectorAll("#wl .wk"), function(d){ var i = +d.getAttribute("data-w");
+    d.classList.toggle("on", w === i || (!!v && w === null && !!PLAN[i].rowsV[v]));
+    Array.prototype.forEach.call(d.querySelectorAll(".wkr button"), function(b){ var bv = b.getAttribute("data-v");
+      b.classList.toggle("on", (w === i || w === null) && bv === v); b.classList.toggle("dim", !!v && bv !== v); }); });
+  var rs = planRows(sel).slice().sort(function(a, b){ return a.num - b.num; });
+  var lab = w !== null && v ? v + ", week of " + dayDate(D0 + 7*w) : w !== null ? "Week of " + dayDate(D0 + 7*w) : v ? v + ", the whole window" : "";
+  $("psel").innerHTML = any ? "Lit on the map: " + lab + " (" + (rs.length > 8 ? rs.length + " rows" : (rs.length > 1 ? "rows " : "row ") + listNums(rs.map(function(r){ return r.num; }))) + ")<button id='pclr'>clear</button>" : "";
+  if (any) $("pclr").addEventListener("click", function(){ planSelect({ w: null, v: null }); });
+  lightRows(rs, any && !noScroll);
+  if (any && W <= 640 && rs.length && !noScroll) mapBack(lab);
+}
+// when should this row be picked (map hover in the Plan view)
+function rowPickTip(r){
+  var ps = PARTS.filter(function(P){ return P.r === r; }), wk = [];
+  for (var w = 0; w < NW; w++) wk.push(ps.reduce(function(s2, P){ return s2 + P.wk[w]; }, 0));
+  var order = wk.map(function(g, i){ return [g, i]; }).filter(function(x){ return x[0] >= 1; }).sort(function(a, b){ return b[0] - a[0]; }).slice(0, 3)
+    .sort(function(a, b){ return a[1] - b[1]; });
+  var tot = wk.reduce(function(a, b){ return a + b; }, 0);
+  return "<b>Row " + r.num + "</b>, " + ps.map(function(P){ return P.raw; }).filter(function(x, i, A){ return A.indexOf(x) === i; }).join(", ") +
+    (order.length ? "<span class='tl2'>Pick mostly in the week" + (order.length > 1 ? "s" : "") + " of " + listNums(order.map(function(x){ return dayDate(D0 + 7*x[1]) + " (<b>" + fmt(x[0]) + "</b> kg)"; })) + "</span>" : "<span class='tl2'>Little to pick in these 8 weeks.</span>") +
+    "<small>" + fmt(tot) + " kg in these 8 weeks.</small>";
+}
+function viewRowTip(r){
+  if (VIEW === "plan"){ if (!PLAN) buildPlan(); return rowPickTip(r); }
+  var ps = PARTS.filter(function(P){ return P.r === r; }), g = groupStats(ps);
+  return "<b>Row " + r.num + "</b>, " + r.variety + "<span class='tl2'><b>" + fmt(g.crop) + "</b> kg crop, <b>" + fmt(g.rkg) + "</b> kg ripe now</span><small>" + g.n + " bushes, " + fmt(g.per) + " berries a bush.</small>";
+}
+function nearestRow(px, py){
+  var w = toWorld(px, py), best = null, bd = 12/K();
+  BR.forEach(function(r){ var vx = r.b[0]-r.a[0], vy = r.b[1]-r.a[1], t = clamp(((w[0]-r.a[0])*vx + (w[1]-r.a[1])*vy)/(vx*vx + vy*vy), 0, 1),
+    d = Math.hypot(r.a[0] + vx*t - w[0], r.a[1] + vy*t - w[1]); if (d < bd){ bd = d; best = r; } });
+  return best;
+}
+
+/* ---------- Issues ---------- */
+var DONE = {};
+try { DONE = JSON.parse(localStorage.getItem("fc-farm-issues") || "{}") || {}; } catch (e) { DONE = {}; }
+function saveDone(){ try { localStorage.setItem("fc-farm-issues", JSON.stringify(DONE)); } catch (e) {} }
+function soonKg(r){ if (!PLAN) buildPlan(); return PARTS.filter(function(P){ return P.r === r; }).reduce(function(s2, P){ return s2 + P.wk[0] + P.wk[1]; }, 0); }
+function buildIssues(){
+  var items = [];
+  WROWS.forEach(function(p){ var r = ROWS[p.ri], k = (p.wf && p.wf.length) ? p.wf[Math.floor(p.wf.length/2)] : Math.floor(p.frames.length/2);
+    items.push({ id: "weeds-" + r.num, r: r, real: true, title: "Weeds in row " + r.num, tag: "<span class='tg2 kp'>from the photos</span>",
+      where: "Row " + r.num + ", most of the row", why: p.weedy + " around the bushes in <b>" + Math.round(100*p.weedshare) + "</b>% of the photos. Found automatically; check on the ground.",
+      look: { p: p, k: k }, note: p.wnote }); });
+  if (UNEV){ var ur = UNEV.r; items.push({ id: "uneven-" + ur.num, r: ur, real: true, title: "Uneven ripening in row " + ur.num, tag: "",
+    where: "Row " + ur.num + ", " + UNEV.v, why: "<b>" + Math.round(100*ur.cnt[2]/ur.tot) + "</b>% ripe now, against <b>" + Math.round(100*UNEV.m) + "</b>% in the other " + UNEV.v + " rows. Plan its picking on its own.",
+    look: ur.ph ? { p: ur.ph, k: 0 } : null, note: UNEV.note }); }
+  DIS.forEach(function(n){ items.push({ id: "disease-" + n.r.num + "-" + n.b.k, r: n.r, real: false, title: "Possible disease, row " + n.r.num + ", bush " + (n.b.k + 1),
+    tag: "", where: "Row " + n.r.num + ", bush " + (n.b.k + 1), why: "Check the leaves and fruit of this bush.", look: null, note: n }); });
+  items.forEach(function(it){ it.soon = soonKg(it.r); });
+  items.sort(function(a, b){ return b.soon - a.soon; });
+  var box = $("ilist"); box.innerHTML = ""; var lastReal = null;
+  items.forEach(function(it){
+    var d = el("div", "iss" + (DONE[it.id] ? " done" : ""));
+    var cb = el("input"); cb.type = "checkbox"; cb.checked = !!DONE[it.id]; cb.setAttribute("aria-label", "Done: " + it.title);
+    cb.addEventListener("change", function(){ if (cb.checked) DONE[it.id] = 1; else delete DONE[it.id]; saveDone(); d.classList.toggle("done", cb.checked); });
+    d.appendChild(cb);
+    var body = el("div");
+    body.appendChild(el("div", "ih2", it.title + " " + it.tag));
+    body.appendChild(el("div", "iw", it.why + "<br>" + it.where + ". In the next two weeks: <b>" + fmt(it.soon) + "</b> kg to pick in this row."));
+    var acts = el("div", "ia"), sm = el("button", "lk", "Show on map");
+    sm.addEventListener("click", function(){ lightRows([it.r], true); hover = { note: it.note }; upd(); mapBack(it.title); });
+    acts.appendChild(sm);
+    if (it.look){ var lk = el("button", "lk", "Look"); lk.addEventListener("click", function(){ dropIn(it.look.p, it.look.k); }); acts.appendChild(lk); }
+    body.appendChild(acts); d.appendChild(body); box.appendChild(d);
+  });
+}
+
+/* ---------- Yield ---------- */
+var YS = { key: "crop", up: false };
+function strip(vals, max, w, h, col){
+  var s2 = '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + " " + h + '" aria-hidden="true"><line x1="0" x2="' + w + '" y1="' + (h/2) + '" y2="' + (h/2) + '" stroke="rgba(236,233,225,.15)"/>';
+  vals.forEach(function(v, i){ var x = 3 + (w - 6)*v/max, y = h/2 + ((i*37) % 9 - 4); s2 += '<circle cx="' + x.toFixed(1) + '" cy="' + y + '" r="1.7" fill="' + (col || "rgba(236,233,225,.45)") + '"/>'; });
+  var md = 3 + (w - 6)*median(vals)/max; s2 += '<line x1="' + md + '" x2="' + md + '" y1="2" y2="' + (h - 2) + '" stroke="#f2c66d" stroke-width="2"/></svg>';
+  return s2;
+}
+function groupStats(parts){
+  var b = [], tot = 0, ripe = 0; parts.forEach(function(P){ b = b.concat(P.bushes); tot += P.tot; ripe += P.ripe; });
+  return { bushes: b, n: b.length, tot: tot, ripe: ripe, crop: kg(tot), rkg: kg(ripe), med: median(b), q1: quant(b, 0.25), q3: quant(b, 0.75), per: tot/Math.max(b.length, 1) };
+}
+function buildYield(){
+  var box = $("ybody"); box.innerHTML = "";
+  var all = groupStats(PARTS), maxB = Math.max.apply(null, all.bushes);
+  box.appendChild(el("div", "ytot", "<div><b>" + fmt(all.crop) + "</b> kg<small>estimated crop</small></div><div><b>" + fmt(all.rkg) + "</b> kg<small>available to pick now</small></div>" +
+    "<div><b>" + fmt(all.n) + "</b><small>bushes</small></div><div><b>" + fmt(all.med) + "</b><small>berries a bush, median</small></div>"));
+  // by variety
+  box.appendChild(el("div", "pls", "By variety"));
+  var t = '<div class="ywrap"><table class="yt"><tr><th>Variety</th><th>Crop kg</th><th>Ripe now kg</th><th>Bushes</th><th style="text-align:left">Berries a bush, each dot a bush</th></tr>';
+  VARS.forEach(function(v){ var g = groupStats(PARTS.filter(function(P){ return P.v === v; }));
+    t += '<tr class="rk" data-v="' + v + '" data-tt="' + ("<b>" + v + "</b>: median <b>" + fmt(g.med) + "</b> berries a bush; middle half <b>" + fmt(g.q1) + "</b> to <b>" + fmt(g.q3) + "</b>.<small>" + g.n + " bushes. Click to light its rows.</small>").replace(/"/g, "&quot;") + '"><td>' + v + '</td><td class="n">' + fmt(g.crop) + '</td><td class="n">' + fmt(g.rkg) + '</td><td class="n">' + g.n + '</td><td style="text-align:left">' + strip(g.bushes, maxB, 190, 18) + "</td></tr>"; });
+  box.appendChild(el("div", "", t + "</table></div>"));
+  box.appendChild(el("p", "pln2", "Yellow tick: the median bush. Scale 0 to " + fmt(maxB) + " berries."));
+  // by block
+  box.appendChild(el("div", "pls", "By block"));
+  var tb = '<div class="ywrap"><table class="yt"><tr><th>Block</th><th>Crop kg</th><th>Ripe now kg</th><th>Bushes</th><th>Berries a bush, median</th></tr>';
+  Object.keys(BLOCKS).forEach(function(g2){ var B = BLOCKS[g2], g = groupStats(PARTS.filter(function(P){ return String(P.r.g) === String(g2); }));
+    tb += '<tr class="rk" data-g="' + g2 + '"><td>Rows ' + B.lo + " to " + B.hi + '</td><td class="n">' + fmt(g.crop) + '</td><td class="n">' + fmt(g.rkg) + '</td><td class="n">' + g.n + '</td><td class="n">' + fmt(g.med) + "</td></tr>"; });
+  box.appendChild(el("div", "", tb + "</table></div>"));
+  // top and bottom rows by berries a bush
+  var rowsS = BR.map(function(r){ return { r: r, g: groupStats(PARTS.filter(function(P){ return P.r === r; })) }; });
+  var byPer = rowsS.slice().sort(function(a, b){ return b.g.per - a.g.per; });
+  var line = function(x){ return "Row <b>" + x.r.num + "</b> (" + x.r.variety + "): <b>" + fmt(x.g.per) + "</b> berries a bush, <b>" + fmt(x.g.crop) + "</b> kg"; };
+  box.appendChild(el("div", "pls", "Top and bottom rows, by berries a bush"));
+  box.appendChild(el("div", "ytb", byPer.slice(0, 3).map(line).join("<br>") + "<br><span style='color:var(--mute)'>Lowest:</span><br>" + byPer.slice(-3).reverse().map(line).join("<br>")));
+  // compare
+  box.appendChild(el("div", "pls", "Compare two"));
+  var opts = VARS.map(function(v){ return '<option value="v:' + v + '">' + v + "</option>"; }).join("") + BR.map(function(r){ return '<option value="r:' + r.num + '">Row ' + r.num + "</option>"; }).join("");
+  var cmp = el("div", "ycmp", '<select id="ca" aria-label="First">' + opts + '</select><span>with</span><select id="cb" aria-label="Second">' + opts + "</select>");
+  box.appendChild(cmp); var cres = el("div", "ywrap"); box.appendChild(cres);
+  $("ca").value = "v:" + VARS[0]; $("cb").value = "v:" + (VARS.indexOf("Bluecrop") >= 0 ? "Bluecrop" : VARS[1]);
+  var pick = function(val){ var k = val.slice(2); return val[0] === "v" ? { name: k, parts: PARTS.filter(function(P){ return P.v === k; }) } : { name: "Row " + k, parts: PARTS.filter(function(P){ return P.r.num === +k; }) }; };
+  var doCmp = function(){ var A = pick($("ca").value), B2 = pick($("cb").value), a = groupStats(A.parts), b = groupStats(B2.parts), mx = Math.max(Math.max.apply(null, a.bushes), Math.max.apply(null, b.bushes));
+    var rowL = function(lab, x, y){ return "<tr><td>" + lab + '</td><td class="n">' + x + '</td><td class="n">' + y + "</td></tr>"; };
+    cres.innerHTML = '<table class="yt" style="margin-top:10px"><tr><th></th><th>' + A.name + "</th><th>" + B2.name + "</th></tr>" +
+      rowL("Crop, kg", fmt(a.crop), fmt(b.crop)) + rowL("Ripe now, kg", fmt(a.rkg), fmt(b.rkg)) + rowL("Ripe share", Math.round(100*a.ripe/a.tot) + "%", Math.round(100*b.ripe/b.tot) + "%") +
+      rowL("Bushes", a.n, b.n) + rowL("Berries a bush, median", fmt(a.med), fmt(b.med)) + rowL("Middle half", fmt(a.q1) + " to " + fmt(a.q3), fmt(b.q1) + " to " + fmt(b.q3)) +
+      '<tr><td>Each dot a bush</td><td style="text-align:left">' + strip(a.bushes, mx, 150, 18) + '</td><td style="text-align:left">' + strip(b.bushes, mx, 150, 18) + "</td></tr></table>";
+    lightRows(uniq(A.parts.concat(B2.parts).map(function(P){ return P.r; })), false); };
+  $("ca").addEventListener("change", doCmp); $("cb").addEventListener("change", doCmp); doCmp(); HL = null;
+  // all rows, sortable
+  box.appendChild(el("div", "pls", "All rows"));
+  var rt = el("div", "ywrap"); box.appendChild(rt);
+  var cols = [["num", "Row"], ["variety", "Variety"], ["n", "Bushes"], ["crop", "Crop kg"], ["rkg", "Ripe now kg"], ["share", "Ripe %"], ["per", "Berries a bush"]];
+  var draw = function(){
+    var a = rowsS.map(function(x){ return { r: x.r, num: x.r.num, variety: x.r.variety, n: x.g.n, crop: x.g.crop, rkg: x.g.rkg, share: 100*x.g.ripe/x.g.tot, per: x.g.per }; });
+    a.sort(function(p, q){ var A2 = p[YS.key], B3 = q[YS.key], c = typeof A2 === "string" ? A2.localeCompare(B3) : A2 - B3; return YS.up ? c : -c; });
+    var h2 = '<table class="yt"><tr>' + cols.map(function(c){ return '<th><button data-k="' + c[0] + '" class="' + (YS.key === c[0] ? "on" + (YS.up ? " up" : "") : "") + '">' + c[1] + "</button></th>"; }).join("") + "</tr>";
+    a.forEach(function(x){ h2 += '<tr class="rk" data-row="' + x.num + '"><td class="n">' + x.num + '</td><td class="w">' + x.variety + '</td><td class="n">' + x.n + '</td><td class="n">' + fmt(x.crop) + '</td><td class="n">' + fmt(x.rkg) + '</td><td class="n">' + Math.round(x.share) + '</td><td class="n">' + fmt(x.per) + "</td></tr>"; });
+    rt.innerHTML = h2 + "</table>";
+    Array.prototype.forEach.call(rt.querySelectorAll("th button"), function(b){ b.addEventListener("click", function(){ var k = b.getAttribute("data-k");
+      if (YS.key === k) YS.up = !YS.up; else { YS.key = k; YS.up = k === "num" || k === "variety"; } draw(); }); });
+  };
+  draw();
+  // clicks on table rows light rows on the map
+  box.addEventListener("click", function(e){
+    var tr = e.target.closest("tr.rk"); if (!tr) return;
+    Array.prototype.forEach.call(box.querySelectorAll("tr.on"), function(x){ x.classList.remove("on"); }); tr.classList.add("on");
+    var rs = tr.hasAttribute("data-row") ? BR.filter(function(r){ return r.num === +tr.getAttribute("data-row"); })
+      : tr.hasAttribute("data-v") ? uniq(PARTS.filter(function(P){ return P.v === tr.getAttribute("data-v"); }).map(function(P){ return P.r; }))
+      : BR.filter(function(r){ return String(r.g) === tr.getAttribute("data-g"); });
+    lightRows(rs, true); mapBack(tr.firstChild.textContent.match(/^\d+$/) ? "Row " + tr.firstChild.textContent : tr.firstChild.textContent);
+  });
+}
+
+/* ---------- Breeding: real measurements from the 3D models ---------- */
+function labLink(id){ return (/\/prototypes\//.test(location.pathname) ? "../bush-lab/index.html#" : "../lab/index.html#") + id; }
+function buildBreed(){
+  var B = window.BREED || [], box = $("bbody"); box.innerHTML = "";
+  if (!B.length){ box.appendChild(el("p", "pln", "No measured bushes found.")); return; }
+  var histSvg = function(hst){ var hmax = Math.max.apply(null, hst), w = 112, h = 22, bw = w/hst.length, s2 = '<svg width="' + w + '" height="' + h + '" aria-hidden="true">';
+    hst.forEach(function(v, i){ var hh = Math.max(v ? 1 : 0, (h - 2)*v/hmax); s2 += '<rect x="' + (i*bw + 0.5).toFixed(1) + '" y="' + (h - hh).toFixed(1) + '" width="' + (bw - 1.5).toFixed(1) + '" height="' + hh.toFixed(1) + '" fill="rgba(236,233,225,.55)"/>'; });
+    return s2 + "</svg>"; };
+  var sizeSvg = function(q){ var w = 100, h = 16, X = function(v){ return 3 + (w - 6)*(clamp(v, 0.5, 1.5) - 0.5); };
+    return '<svg width="' + w + '" height="' + h + '" aria-hidden="true"><line x1="' + X(1) + '" x2="' + X(1) + '" y1="1" y2="' + (h - 1) + '" stroke="rgba(236,233,225,.25)"/>' +
+      '<line x1="' + X(q[0]) + '" x2="' + X(q[4]) + '" y1="8" y2="8" stroke="rgba(236,233,225,.5)" stroke-width="2"/><rect x="' + X(q[1]) + '" y="4" width="' + (X(q[3]) - X(q[1])) + '" height="8" fill="rgba(236,233,225,.55)"/>' +
+      '<line x1="' + X(q[2]) + '" x2="' + X(q[2]) + '" y1="2" y2="14" stroke="#f2c66d" stroke-width="2"/></svg>'; };
+  var hSvg = function(b){ var w = 100, h = 16, X = function(v){ return 3 + (w - 6)*v; }, s2 = '<svg width="' + w + '" height="' + h + '" aria-hidden="true"><line x1="3" x2="' + (w - 3) + '" y1="8" y2="8" stroke="rgba(236,233,225,.15)"/>';
+    b.clusterH.forEach(function(v, i){ s2 += '<circle cx="' + X(v).toFixed(1) + '" cy="' + (8 + ((i*37) % 7 - 3)) + '" r="1.4" fill="rgba(236,233,225,.4)"/>'; });
+    if (b.hUnripe != null) s2 += '<line x1="' + X(b.hUnripe) + '" x2="' + X(b.hUnripe) + '" y1="1" y2="15" stroke="#8fa83a" stroke-width="2"/>';
+    if (b.hRipe != null) s2 += '<line x1="' + X(b.hRipe) + '" x2="' + X(b.hRipe) + '" y1="1" y2="15" stroke="#5a78e0" stroke-width="2"/>';
+    return s2 + "</svg>"; };
+  var t = '<div class="ywrap"><table class="yt bt2"><tr><th>Bush</th><th>Date</th><th>Berries</th><th>Clusters</th><th>Berries a cluster</th><th style="text-align:left">Cluster sizes, 1 to 14+</th>' +
+    '<th>Size spread</th><th style="text-align:left">Relative size</th><th>Evenness in clusters</th><th style="text-align:left">Fruit height, low to high</th></tr>';
+  var last = null;
+  B.forEach(function(b){
+    var first = b.name !== last; last = b.name;
+    var even = b.even == null ? "not yet" : Math.round(100*b.even) + "%";
+    var tipC = ("<b>" + b.name + ", " + b.date + "</b>: " + b.clusters + " clusters; mean <b>" + b.mean + "</b>, median <b>" + b.median + "</b>, largest <b>" + b.max + "</b> berries; <b>" + b.singles + "</b> single berries.").replace(/"/g, "&quot;");
+    var tipS = ("Berry size spread: <b>" + Math.round(100*b.sizeCV) + "</b>% (standard deviation over mean). <b>" + Math.round(100*b.small) + "</b>% of berries are under 0.8 of this bush's average, <b>" + Math.round(100*b.large) + "</b>% over 1.2.<small>Bar: middle half; line: 10 to 90%; yellow: median; grey: 1.</small>").replace(/"/g, "&quot;");
+    var tipE = (b.even == null ? "Too few clusters have started to colour to judge evenness." : "Within clusters of 3 or more that have started to colour, the most common ripeness stage holds <b>" + Math.round(100*b.even) + "</b>% of the berries, on average (" + b.nEven + " clusters). 100% means all one stage.").replace(/"/g, "&quot;");
+    var tipH = ("Each dot a cluster, by height on the bush (0 = lowest berry, 1 = highest)." + (b.hRipe != null ? " Blue: mean height of ripe berries, <b>" + b.hRipe.toFixed(2) + "</b>." : "") + (b.hUnripe != null ? " Green: unripe, <b>" + b.hUnripe.toFixed(2) + "</b>." : "")).replace(/"/g, "&quot;");
+    t += '<tr class="' + (first ? "g" : "") + '"><td>' + (first ? b.name + (b.farm ? " (farm row)" : "") : "") + '</td><td><a href="' + labLink(b.id) + '">' + b.date + "</a></td>" +
+      '<td class="n">' + b.total + '</td><td class="n" data-tt="' + tipC + '">' + b.clusters + '</td><td class="n" data-tt="' + tipC + '">' + b.mean + " / " + b.max + '</td><td data-tt="' + tipC + '" style="text-align:left">' + histSvg(b.hist) + "</td>" +
+      '<td class="n" data-tt="' + tipS + '">' + Math.round(100*b.sizeCV) + '%</td><td data-tt="' + tipS + '" style="text-align:left">' + sizeSvg(b.rel) + "</td>" +
+      '<td class="n" data-tt="' + tipE + '">' + even + '</td><td data-tt="' + tipH + '" style="text-align:left">' + hSvg(b) + "</td></tr>";
+  });
+  box.appendChild(el("div", "", t + "</table></div>"));
+  box.appendChild(el("div", "bkey", "<b>Cluster sizes</b>: how many clusters have 1, 2, 3 and up to 14 or more berries, scaled to each bush. <b>Berries a cluster</b>: mean / largest. <b>Size spread</b>: how much berry size varies on the bush. <b>Evenness</b>: how alike in ripeness the berries of one cluster are; it is 100% once every berry is ripe. " +
+    "<b>Fruit height</b>: where clusters sit on the bush; blue and green ticks are the mean heights of ripe and unripe berries. Click a date to open that bush in the Bush lab. Bush 6 on 1 July is a small partial capture."));
+  // across dates, in words, for bushes measured more than once
+  var byB = {}; B.forEach(function(b){ (byB[b.name] = byB[b.name] || []).push(b); });
+  var lines = Object.keys(byB).filter(function(k){ return byB[k].length > 1; }).map(function(k){ var a = byB[k];
+    return k + ": " + a.map(function(b){ return "<b>" + b.total + "</b>"; }).join(" then ") + " berries, " + a.map(function(b){ return "<b>" + b.mean + "</b>"; }).join(" then ") + " a cluster (" + a.map(function(b){ return b.date; }).join(", ") + ")"; });
+  if (lines.length){ box.appendChild(el("div", "pls", "Across dates")); box.appendChild(el("div", "ytb", lines.join("<br>"))); }
+}
+
+/* ---------- switching views ---------- */
+var BUILT = {};
+function setTab(v){
+  if (phase === "sv") exitSV();
+  if (tl) tl.progress(1);
+  closeCard(); closeTip(); ttHide(); tgt.className = ""; hover = null; $("pbar2").classList.remove("on"); document.body.classList.remove("mapback");
+  VIEW = v; HL = null;
+  Array.prototype.forEach.call(document.querySelectorAll("#nav button"), function(b){ b.classList.toggle("on", b.getAttribute("data-v") === v); });
+  document.body.className = document.body.className.replace(/\bvw-\w+/g, "").trim();
+  if (v !== "map") document.body.classList.add("vw-" + v);
+  Array.prototype.forEach.call(document.querySelectorAll(".sheet"), function(s2){ var on = s2.id === "sh-" + v; s2.classList.toggle("cur", on);
+    gsap.killTweensOf(s2); gsap.to(s2, { autoAlpha: on ? 1 : 0, duration: RM ? 0 : (on ? 0.25 : 0.15) }); });
+  if (v === "plan"){ if (!PLAN) buildPlan(); planSelect(PS, true); }
+  if (v === "issues"){ buildIssues(); }
+  if (v === "yield" && !BUILT.yield){ buildYield(); BUILT.yield = 1; }
+  if (v === "breed" && !BUILT.breed){ buildBreed(); BUILT.breed = 1; }
+  upd();
+}
+Array.prototype.forEach.call(document.querySelectorAll("#nav button"), function(b){ b.addEventListener("click", function(){ setTab(b.getAttribute("data-v")); }); });
+
+/* ---------- the walker: drag onto a lit row ---------- */
+var drag = { on: false, tg: null, x: 0, y: 0 }, fig = $("dragfig"), dock = $("dock"), tgt = $("tgt");
+function placeFig(x, y){
+  drag.x = x; drag.y = y;
+  fig.style.transform = "translate(" + (x - 7) + "px," + (y - 34) + "px)" + (drag.tg ? " scale(1.15)" : "");
+  drag.tg = hitPhotoRow(x, y + 2, 46);
+  if (drag.tg){
+    var r = ROWS[drag.tg.p.ri];
+    tgt.innerHTML = "Row <b class='num'>" + r.num + "</b>";
+    tgt.style.transform = "translate(" + (x + 14) + "px," + (y - 46) + "px)"; tgt.className = "on";
+  } else tgt.className = "";
+  upd();
+}
+dock.addEventListener("pointerdown", function(e){
+  if (phase !== "landed" && phase !== "fill") return;
+  e.preventDefault();
+  if (phase === "fill" && tl) tl.progress(1);
+  closeCard(); drag.on = true; try { dock.setPointerCapture(e.pointerId); } catch (er) {}
+  dock.classList.add("out"); fig.classList.add("on"); placeFig(e.clientX, e.clientY);
+});
+dock.addEventListener("pointermove", function(e){ if (drag.on) placeFig(e.clientX, e.clientY); });
+function dragEnd(e){
+  if (!drag.on) return;
+  drag.on = false; tgt.classList.remove("on");
+  var tg = drag.tg; drag.tg = null;
+  if (tg && e.type === "pointerup"){
+    fig.classList.remove("on"); dock.classList.remove("out");
+    dropIn(tg.p, nearK(tg.p, tg.t)); return;
+  }
+  var R = dock.getBoundingClientRect();
+  gsap.to(drag, { x: R.left + R.width/2, y: R.top + R.height/2 + 15, duration: RM ? 0 : 0.35, ease: "power2.inOut",
+    onUpdate: function(){ fig.style.transform = "translate(" + (drag.x - 7) + "px," + (drag.y - 34) + "px)"; },
+    onComplete: function(){ fig.classList.remove("on"); dock.classList.remove("out"); } });
+  upd();
+}
+dock.addEventListener("pointerup", dragEnd);
+dock.addEventListener("pointercancel", dragEnd);
+dock.addEventListener("keydown", function(e){   // keyboard: Enter walks the first row with photos
+  if ((e.key === "Enter" || e.key === " ") && PH.length && phase === "landed"){ e.preventDefault(); dropIn(PH[0], 0); }
+});
+
+/* ---------- row view ---------- */
+var SV = { p: null, k: 0, tok: 0, cur: 0, mt: 0, save: null, acc: 0, last: 0 };
+var LAY = [$("svA"), $("svB")], CACHE = {};
+function pre(src){ if (!CACHE[src]){ var im = new Image(); im.decoding = "async"; im.src = src; CACHE[src] = im; } return CACHE[src]; }
+function angTo(a, b){ var d = (b - a) % (2*Math.PI); if (d > Math.PI) d -= 2*Math.PI; if (d < -Math.PI) d += 2*Math.PI; return a + d; }
+
+function dropIn(p, k){
+  if (phase === "sv") return;
+  if (tl) tl.progress(1);
+  closeCard(); drag.on = false; drag.tg = null; tgt.classList.remove("on"); fig.classList.remove("on"); dock.classList.remove("out");
+  var r = ROWS[p.ri], pt = rowPt(r, p.frames[k][1]);
+  SV.save = { s: S.s, rot: S.rot };
+  phase = "sv"; svOpen(p, k, 0);
+  var sv = $("sv");
+  closeTip(); ttHide(); $("pbar2").classList.remove("on"); document.body.classList.remove("mapback");
+  gsap.to(["#panel", "#ctrl", ".top", ".attr", "#today", "#nav", "#wip", ".sheet.cur"], { autoAlpha: 0, duration: RM ? 0 : 0.3 });
+  if (RM){ gsap.set(S, { cx: pt[0], cy: pt[1], s: 22.4, rot: -rowAng(r) }); gsap.set(sv, { autoAlpha: 1 }); upd(); svFocus(); return; }
+  var t2 = gsap.timeline({ onUpdate: upd });
+  t2.to(S, { cx: pt[0], cy: pt[1], duration: 1.3, ease: "power3.inOut" }, 0)
+    .to(S, { s: 22.6, duration: 1.4, ease: "power2.in" }, 0)
+    .to(S, { rot: angTo(S.rot, -rowAng(r)), duration: 1.3, ease: "power2.inOut" }, 0)
+    .fromTo(sv, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, ease: "power1.in" }, 0.95)
+    .fromTo("#svph", { scale: 1.25 }, { scale: 1, duration: 1.1, ease: "power2.out" }, 0.95)
+    .fromTo([".svtop", ".svbot", ".svnav"], { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5 }, 1.6)
+    .add(svFocus);
+}
+function svFocus(){ try { $("svx").focus({ preventScroll: true }); } catch (e) {} }
+function exitSV(){
+  if (phase !== "sv") return;
+  var p = SV.p, r = ROWS[p.ri], pt = rowPt(r, p.frames[SV.k][1]), L = landing();
+  phase = "back";
+  var tgS = Math.max(SV.save.s, L.s + 1.3);
+  gsap.set(S, { cx: pt[0], cy: pt[1], s: 22.6, rot: angTo(0, S.rot) });
+  var t3 = gsap.timeline({ onUpdate: upd, onComplete: function(){ phase = "landed"; touched = true; } });
+  t3.to("#sv", { autoAlpha: 0, duration: RM ? 0 : 0.45, ease: "power1.out" }, 0)
+    .to("#svph", { scale: 1.2, duration: RM ? 0 : 0.45, ease: "power1.in" }, 0)
+    .to(S, { s: tgS, rot: 0, duration: RM ? 0 : 1.1, ease: "power2.out" }, RM ? 0 : 0.1)
+    .to(["#panel", "#ctrl", ".top", ".attr", "#today", "#nav", "#wip", ".sheet.cur"], { autoAlpha: 1, duration: RM ? 0 : 0.4 }, RM ? 0 : 0.8);
+  // the walker stands where you left the row, briefly
+  showSpot(pt);
+}
+var spot = null;
+function showSpot(pt){ spot = { pt: pt, a: 1 }; gsap.to(spot, { a: 0, duration: RM ? 0 : 2.4, delay: 1.4, onUpdate: upd, onComplete: function(){ spot = null; upd(); } }); }
+
+function svOpen(p, k, dir){
+  SV.p = p; SV.k = -1;
+  var r = ROWS[p.ri];
+  $("svrow").textContent = r.num;
+  $("svvar").textContent = r.variety + ", photos from " + p.date;
+  var ticks = "";
+  p.frames.forEach(function(f, j){ ticks += '<i class="' + ((p.wf || []).indexOf(j) >= 0 ? "f" : "") + '" style="left:' + (100*f[1]).toFixed(2) + '%"></i>'; });
+  FLAGS.forEach(function(F){ if (F.p !== p) return; var T = stretchT(F); ticks += '<b style="left:' + (100*T[0]).toFixed(2) + '%;width:' + (100*(T[1]-T[0])).toFixed(2) + '%"></b>'; });
+  $("svweedy").hidden = !p.weedy; $("svweedy").textContent = p.weedy ? "Weedy along most of the row, from the photos" : "";
+  $("svticks").innerHTML = ticks;
+  LAY.forEach(function(im){ gsap.set(im, { opacity: 0, xPercent: 0, scale: 1 }); });
+  SV.mt = p.frames[k][1];
+  svShow(k, 0);
+}
+function svShow(k, dir){
+  var p = SV.p; k = clamp(k, 0, p.frames.length - 1);
+  if (k === SV.k) return;
+  SV.k = k; var tok = ++SV.tok, f = p.frames[k];
+  $("svm").textContent = metres(p, k);
+  $("svknob").style.left = (100*f[1]).toFixed(2) + "%";
+  $("svprev").disabled = k === 0; $("svnext").disabled = k === p.frames.length - 1;
+  var fl = null; FLAGS.forEach(function(F){ if (F.p === p && k >= F.k0 && k <= F.k1) fl = F; });
+  var wk = (p.wf || []).indexOf(k) >= 0;
+  $("svflag").hidden = !(fl || wk);
+  if (fl || wk) $("svflagw").textContent = (fl ? fl.what : (p.weedy || "Grass")) + " around the bushes in this photo. Automatic, not checked.";
+  gsap.to(SV, { mt: f[1], duration: RM ? 0 : 0.45, ease: "power2.out", onUpdate: drawMini });
+  var src = frameSrc(p, k), im = pre(src);
+  for (var d = -2; d <= 3; d++){ var j = k + (dir < 0 ? -d : d); if (j >= 0 && j < p.frames.length) pre(frameSrc(p, j)); }
+  var go = function(){
+    if (tok !== SV.tok) return;
+    var front = LAY[SV.cur], back = LAY[1 - SV.cur];
+    back.src = src; SV.cur = 1 - SV.cur; $("svBg").src = src;
+    gsap.killTweensOf([front, back]);
+    gsap.set(back, { zIndex: 2 }); gsap.set(front, { zIndex: 1 });
+    if (RM || !dir){ gsap.set(back, { opacity: 0, xPercent: 0, scale: 1 }); gsap.to(back, { opacity: 1, duration: RM ? 0 : 0.35 }); gsap.set(front, { opacity: 0 }); return; }
+    gsap.fromTo(back, { opacity: 0, xPercent: dir*2.2, scale: 1.025 }, { opacity: 1, xPercent: 0, scale: 1, duration: 0.5, ease: "power2.out" });
+    gsap.to(front, { xPercent: -dir*2.2, scale: 0.99, duration: 0.5, ease: "power2.out", onComplete: function(){ gsap.set(front, { opacity: 0, xPercent: 0, scale: 1 }); } });
+  };
+  if (im.complete && im.naturalWidth) go();
+  else if (im.decode) im.decode().then(go, go); else im.onload = go;
+}
+function step(n){ if (phase === "sv") svShow(SV.k + n, n > 0 ? 1 : -1); }
+$("svprev").addEventListener("click", function(){ step(-1); });
+$("svnext").addEventListener("click", function(){ step(1); });
+$("svx").addEventListener("click", exitSV);
+$("mini").addEventListener("click", exitSV);
+window.addEventListener("keydown", function(e){
+  if (phase !== "sv") return;
+  if (e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "d" || e.key === "w"){ e.preventDefault(); step(1); }
+  if (e.key === "ArrowLeft" || e.key === "ArrowDown" || e.key === "a" || e.key === "s"){ e.preventDefault(); step(-1); }
+});
+$("sv").addEventListener("wheel", function(e){
+  e.preventDefault();
+  var now = performance.now(); if (now - SV.last > 400) SV.acc = 0;
+  SV.acc += (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * (e.deltaMode === 1 ? 30 : 1);
+  if (Math.abs(SV.acc) > 70 && now - SV.last > 140){ step(SV.acc > 0 ? 1 : -1); SV.acc = 0; SV.last = now; }
+}, { passive: false });
+(function(){   // drag the photo: pull the scene left to walk forward
+  var ph = $("svph"), x0 = null, id = null;
+  ph.addEventListener("pointerdown", function(e){ x0 = e.clientX; id = e.pointerId; try { ph.setPointerCapture(id); } catch (er) {} });
+  ph.addEventListener("pointermove", function(e){
+    if (x0 === null || e.pointerId !== id) return;
+    var dx = x0 - e.clientX, stepPx = Math.max(60, Math.min(110, W/9));
+    if (Math.abs(dx) > stepPx){ step(dx > 0 ? 1 : -1); x0 = e.clientX; }
+  });
+  var end = function(){ x0 = null; };
+  ph.addEventListener("pointerup", end); ph.addEventListener("pointercancel", end);
+  var tr = $("svtrack"), on = false;
+  var seek = function(e){ var R = tr.getBoundingClientRect(), t = clamp((e.clientX - R.left)/R.width, 0, 1), k = nearK(SV.p, t);
+    if (k !== SV.k) svShow(k, k > SV.k ? 1 : -1); };
+  tr.addEventListener("pointerdown", function(e){ on = true; try { tr.setPointerCapture(e.pointerId); } catch (er) {} seek(e); });
+  tr.addEventListener("pointermove", function(e){ if (on) seek(e); });
+  tr.addEventListener("pointerup", function(){ on = false; });
+  tr.addEventListener("pointercancel", function(){ on = false; });
+})();
+
+/* mini-map: north up, about 70 m across */
+function drawMini(){
+  var c = $("mini"), m = c.getContext("2d"), sz = c.clientWidth || 168, d = Math.min(window.devicePixelRatio || 1, 2);
+  if (c.width !== Math.round(sz*d)){ c.width = Math.round(sz*d); c.height = Math.round(sz*d); }
+  var p = SV.p; if (!p) return;
+  var r = ROWS[p.ri], pt = rowPt(r, SV.mt), k = sz / (70 / MPP);
+  m.setTransform(d, 0, 0, d, 0, 0); m.fillStyle = "#141611"; m.fillRect(0, 0, sz, sz);
+  m.setTransform(d*k, 0, 0, d*k, d*(sz/2 - pt[0]*k), d*(sz/2 - pt[1]*k));
+  m.imageSmoothingEnabled = true; m.imageSmoothingQuality = "high";
+  LV.forEach(function(L){ if (L.z >= 17 && L.ok) m.drawImage(L.img, L.x, L.y, L.s, L.s); });
+  m.setTransform(d, 0, 0, d, 0, 0); m.fillStyle = "rgba(8,9,7,.28)"; m.fillRect(0, 0, sz, sz);
+  m.setTransform(d*k, 0, 0, d*k, d*(sz/2 - pt[0]*k), d*(sz/2 - pt[1]*k));
+  m.lineCap = "round";
+  PH.forEach(function(q){ var rq = ROWS[q.ri]; m.beginPath(); m.moveTo(rq.a[0], rq.a[1]); m.lineTo(rq.b[0], rq.b[1]);
+    m.strokeStyle = q === p ? "rgba(243,236,219,.95)" : "rgba(243,236,219,.35)"; m.lineWidth = (q === p ? 2 : 1.2)/k; m.stroke(); });
+  NOTES.forEach(function(n){ if (n.kind !== "weeds") return;
+    m.beginPath(); m.moveTo(n.seg[0][0], n.seg[0][1]); m.lineTo(n.seg[1][0], n.seg[1][1]); m.strokeStyle = "#ff8f3a"; m.lineWidth = 2.4/k; m.stroke(); });
+  // you: a wedge pointing the way you walk
+  var a = rowAng(r);
+  m.setTransform(d, 0, 0, d, d*sz/2, d*sz/2); m.rotate(a);
+  m.fillStyle = "rgba(11,13,10,.75)"; m.beginPath(); m.moveTo(13, 0); m.lineTo(-8, -9); m.lineTo(-4, 0); m.lineTo(-8, 9); m.closePath(); m.fill();
+  m.fillStyle = "#f3ecdb"; m.beginPath(); m.moveTo(10, 0); m.lineTo(-6, -7); m.lineTo(-3, 0); m.lineTo(-6, 7); m.closePath(); m.fill();
+}
+
+window.__walk = { drop: function(row, k){ var q = PH.filter(function(x){ return x.row === row; })[0]; if (q) dropIn(q, k); },
+  exit: exitSV, step: step, tab: function(v){ setTab(v); }, planPick: function(i){ var b = document.querySelectorAll(".wkr button")[i]; if (b) b.click(); }, note: function(i){ goNote(NOTES[i]); }, notes: function(){ return NOTES.map(function(n){ return n.kind + " " + n.r.num; }); },
+  hover: function(i){ var n = NOTES[i], P = toScreen(n.x, n.y); cv.dispatchEvent(new PointerEvent("pointermove", { clientX: P[0], clientY: P[1], pointerType: "mouse", bubbles: true })); }, fig: function(x, y){ drag.on = true; dock.classList.add("out"); fig.classList.add("on"); placeFig(x, y); },
+  rowAt: function(row, t){ var q = PH.filter(function(x){ return x.row === row; })[0], w = rowPt(ROWS[q.ri], t); return toScreen(w[0], w[1]); } };   // test hooks
+window.addEventListener("resize", resize);
+resize();
+gsap.set(["#panel", "#ctrl", "#today", "#nav", "#wip"], { autoAlpha: 0 });
+ready();
+var vh = /view=(\w+)/.exec(location.hash); if (vh && ["plan", "issues", "yield", "breed"].indexOf(vh[1]) >= 0) setTab(vh[1]);
+})();
+</script>
+</body>
+</html>
+</body></html>
